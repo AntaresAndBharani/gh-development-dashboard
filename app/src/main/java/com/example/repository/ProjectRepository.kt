@@ -2,6 +2,8 @@ package com.example.repository
 
 import com.example.data.local.ProjectDao
 import com.example.data.local.ProjectEntity
+import com.example.data.local.StatusTransitionDao
+import com.example.data.local.StatusTransitionEntity
 import com.example.data.remote.GitHubService
 import com.example.data.remote.IssueDto
 import com.example.data.remote.PullRequestDto
@@ -10,9 +12,19 @@ import kotlinx.coroutines.flow.Flow
 
 class ProjectRepository(
     private val projectDao: ProjectDao,
-    private val gitHubService: GitHubService
+    private val gitHubService: GitHubService,
+    private val statusTransitionDao: StatusTransitionDao? = null
 ) {
     val allProjects: Flow<List<ProjectEntity>> = projectDao.getAllProjects()
+    val allTransitions: Flow<List<StatusTransitionEntity>>? = statusTransitionDao?.getAllTransitions()
+
+    fun getTransitionsForProject(owner: String, repo: String): Flow<List<StatusTransitionEntity>>? {
+        return statusTransitionDao?.getTransitionsForRepo(owner, repo)
+    }
+
+    fun getTransitionsForIssue(issueId: String): Flow<List<StatusTransitionEntity>>? {
+        return statusTransitionDao?.getTransitionsForIssue(issueId)
+    }
 
     suspend fun addProject(owner: String, repo: String) {
         // Just verify if it exists, throws exception if not found
@@ -52,5 +64,47 @@ class ProjectRepository(
 
     suspend fun getProjectPullRequests(owner: String, repo: String): List<PullRequestDto> {
         return gitHubService.getPullRequests(owner = owner, repo = repo)
+    }
+
+    suspend fun fetchAndCacheIssueTransitions(
+        owner: String,
+        repo: String,
+        issueNumber: Int
+    ): List<StatusTransitionEntity> {
+        val issueId = "$owner/$repo#$issueNumber"
+        val events = try {
+            gitHubService.getIssueEvents(owner = owner, repo = repo, issueNumber = issueNumber)
+        } catch (e: Exception) {
+            emptyList()
+        }
+
+        val transitions = events.filter { it.label != null }.map { event ->
+            StatusTransitionEntity(
+                issueId = issueId,
+                owner = owner,
+                repo = repo,
+                issueNumber = issueNumber,
+                labelName = event.label!!.name,
+                eventType = event.event,
+                timestamp = event.createdAt
+            )
+        }
+
+        statusTransitionDao?.let { dao ->
+            dao.deleteTransitionsForIssue(issueId)
+            if (transitions.isNotEmpty()) {
+                dao.insertTransitions(transitions)
+            }
+        }
+
+        return transitions
+    }
+
+    suspend fun fetchAndCacheStatusTransitions(
+        owner: String,
+        repo: String,
+        issueNumber: Int
+    ): List<StatusTransitionEntity> {
+        return fetchAndCacheIssueTransitions(owner, repo, issueNumber)
     }
 }
