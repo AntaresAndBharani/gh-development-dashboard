@@ -3,10 +3,18 @@ package com.example.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.data.local.StatusTransitionEntity
+import com.example.domain.DwellTimeSummary
 import com.example.domain.ProjectHealth
 import com.example.domain.PullRequest
+import com.example.domain.SdlcStage
+import com.example.domain.StageDwellTime
+import com.example.domain.StageTransition
 import com.example.domain.Subtask
+import com.example.domain.TimeWindow
 import com.example.domain.UserStory
+import com.example.domain.calculateDwellTimeSummary
+import com.example.domain.calculateStageDwellTimes
 import com.example.domain.parseSubtasks
 import com.example.repository.ProjectRepository
 import kotlinx.coroutines.async
@@ -19,8 +27,23 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+typealias TimeWindow = com.example.domain.TimeWindow
+
 enum class SortOption {
     NAME_ASC, NAME_DESC, STORIES_DESC, PRS_DESC, SUBTASKS_DESC
+}
+
+data class AnalyticsUiState(
+    val selectedTimeWindow: TimeWindow = TimeWindow.THREE_DAYS,
+    val selectedScope: String? = null,
+    val stageDwellTimes: List<StageDwellTime> = emptyList(),
+    val totalDwellTimeMillis: Long = 0L,
+    val bottleneckStage: SdlcStage? = null,
+    val summary: DwellTimeSummary? = null,
+    val isLoading: Boolean = false,
+    val error: String? = null
+) {
+    val isGlobal: Boolean get() = selectedScope.isNullOrBlank() || selectedScope.equals("global", ignoreCase = true)
 }
 
 class DashboardViewModel(private val repository: ProjectRepository) : ViewModel() {
@@ -36,6 +59,24 @@ class DashboardViewModel(private val repository: ProjectRepository) : ViewModel(
 
     private val _addProjectError = MutableStateFlow<String?>(null)
     val addProjectError: StateFlow<String?> = _addProjectError.asStateFlow()
+
+    private val _selectedTimeWindow = MutableStateFlow(TimeWindow.THREE_DAYS)
+    val selectedTimeWindow: StateFlow<TimeWindow> = _selectedTimeWindow.asStateFlow()
+
+    private val _selectedScope = MutableStateFlow<String?>(null)
+    val selectedScope: StateFlow<String?> = _selectedScope.asStateFlow()
+
+    private val _analyticsUiState = MutableStateFlow(
+        AnalyticsUiState(
+            selectedTimeWindow = TimeWindow.THREE_DAYS,
+            selectedScope = null,
+            stageDwellTimes = calculateStageDwellTimes(emptyList(), TimeWindow.THREE_DAYS),
+            summary = calculateDwellTimeSummary(emptyList(), TimeWindow.THREE_DAYS)
+        )
+    )
+    val analyticsUiState: StateFlow<AnalyticsUiState> = _analyticsUiState.asStateFlow()
+
+    private var cachedTransitions: List<StatusTransitionEntity> = emptyList()
 
     init {
         viewModelScope.launch {
@@ -58,6 +99,13 @@ class DashboardViewModel(private val repository: ProjectRepository) : ViewModel(
                 entities.forEach { entity ->
                     fetchProjectData(entity.owner, entity.repo)
                 }
+            }
+        }
+
+        viewModelScope.launch {
+            repository.allTransitions?.collectLatest { transitions ->
+                cachedTransitions = transitions
+                recomputeAnalytics()
             }
         }
     }
@@ -84,10 +132,38 @@ class DashboardViewModel(private val repository: ProjectRepository) : ViewModel(
                 val userStories = coroutineScope {
                     issues.map { issue ->
                         async {
+                            try {
+                                val fetched = repository.fetchAndCacheIssueTransitions(owner, repo, issue.number)
+                                if (repository.allTransitions == null && fetched.isNotEmpty()) {
+                                    synchronized(this@DashboardViewModel) {
+                                        val existing = cachedTransitions.filterNot { it.issueId == "$owner/$repo#${issue.number}" }
+                                        cachedTransitions = existing + fetched
+                                        recomputeAnalytics()
+                                    }
+                                }
+                            } catch (e: Exception) {
+                                // Ignore transition fetch errors
+                            }
+
                             val remoteSubIssues = try {
                                 repository.getSubIssues(owner, repo, issue.number)
                             } catch (e: Exception) {
                                 emptyList()
+                            }
+
+                            remoteSubIssues.forEach { sub ->
+                                try {
+                                    val fetchedSub = repository.fetchAndCacheIssueTransitions(owner, repo, sub.number)
+                                    if (repository.allTransitions == null && fetchedSub.isNotEmpty()) {
+                                        synchronized(this@DashboardViewModel) {
+                                            val existing = cachedTransitions.filterNot { it.issueId == "$owner/$repo#${sub.number}" }
+                                            cachedTransitions = existing + fetchedSub
+                                            recomputeAnalytics()
+                                        }
+                                    }
+                                } catch (e: Exception) {
+                                    // Ignore
+                                }
                             }
 
                             val parsedSubtasks = parseSubtasks(issue.body)
@@ -165,6 +241,53 @@ class DashboardViewModel(private val repository: ProjectRepository) : ViewModel(
     fun setSortOption(option: SortOption) {
         _sortOption.value = option
         _projectsHealth.update { sortProjects(it, option) }
+    }
+
+    fun setTimeWindow(window: TimeWindow) {
+        _selectedTimeWindow.value = window
+        recomputeAnalytics()
+    }
+
+    fun setScopeFilter(scope: String?) {
+        _selectedScope.value = scope
+        recomputeAnalytics()
+    }
+
+    private fun recomputeAnalytics() {
+        val currentWindow = _selectedTimeWindow.value
+        val currentScope = _selectedScope.value
+
+        val filteredEntities = if (currentScope.isNullOrBlank() || currentScope.equals("global", ignoreCase = true)) {
+            cachedTransitions
+        } else {
+            cachedTransitions.filter { entity ->
+                val scopeKey = "${entity.owner}/${entity.repo}"
+                scopeKey.equals(currentScope, ignoreCase = true) ||
+                entity.repo.equals(currentScope, ignoreCase = true)
+            }
+        }
+
+        val stageTransitions = filteredEntities.map { entity ->
+            StageTransition(
+                issueId = entity.issueId,
+                labelName = entity.labelName,
+                timestamp = entity.timestamp,
+                eventType = entity.eventType
+            )
+        }
+
+        val summary = calculateDwellTimeSummary(stageTransitions, currentWindow)
+
+        _analyticsUiState.value = AnalyticsUiState(
+            selectedTimeWindow = currentWindow,
+            selectedScope = currentScope,
+            stageDwellTimes = summary.stageDwellTimes,
+            totalDwellTimeMillis = summary.totalDwellTimeMillis,
+            bottleneckStage = summary.bottleneckStage,
+            summary = summary,
+            isLoading = false,
+            error = null
+        )
     }
 
     private fun sortProjects(list: List<ProjectHealth>, option: SortOption): List<ProjectHealth> {
