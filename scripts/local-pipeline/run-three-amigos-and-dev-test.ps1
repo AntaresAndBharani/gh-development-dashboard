@@ -135,44 +135,13 @@ function ConvertTo-JsonArray {
 }
 
 function ConvertFrom-JsonSafeArray {
-    # THE actual root cause of the flaky story-count corruption (found
-    # after ConvertTo-SafeString below turned out NOT to be the real fix --
-    # kept anyway as a reasonable defensive practice, but this is the one
-    # that mattered): `@($text | ConvertFrom-Json)` -- wrapping a LIVE
-    # PIPELINE in @() -- can nest an already-correct array result inside
-    # another single-element array instead of flattening it. Confirmed
-    # reproducibly, isolated down to this exact difference: `$x =
-    # $text | ConvertFrom-Json` followed by a separate `@($x)` always
-    # worked; `@($text | ConvertFrom-Json)` as one expression sometimes
-    # collapsed a real 9-element array to Count=1 with every field's values
-    # concatenated together. Capture the parse result to a plain variable
-    # FIRST, then check whether it's already an array before wrapping --
-    # @() around an already-materialized variable (not a live pipe) is the
-    # safe, standard idiom and doesn't have this problem. The other three
-    # wrappers in this pipeline (backlog-triage, pr-review, architect)
-    # already happened to use this safe two-step pattern throughout; this
-    # file was the only one written with the unsafe one-liner.
     param([string]$JsonText)
     $parsed = $JsonText | ConvertFrom-Json -ErrorAction Stop
-    if ($parsed -is [array]) { return $parsed }
-    return @($parsed)
+    if ($parsed -is [array]) { return , $parsed }
+    return , @($parsed)
 }
 
 function ConvertTo-SafeString {
-    # Found live building THIS wrapper: `($x | Out-String).Trim()` on
-    # captured native-command output is NOT safe for reassembling it into
-    # one string for JSON parsing. Out-String runs the value through
-    # PowerShell's display-formatting subsystem, which applies a line-wrap
-    # width that's unreliable in a headless process (varies by how the
-    # process happens to be spawned). Confirmed live and reproducibly
-    # flaky: the exact same gh output, captured the exact same way, parsed
-    # to 9 real story objects most of the time and to one corrupted object
-    # (all 9 numbers concatenated into one field) some of the time, with
-    # no code difference between runs. Avoid the formatting subsystem
-    # entirely -- join array elements with a real newline instead. All
-    # other wrappers in this pipeline (backlog-triage, pr-review,
-    # architect) carried the same latent bug and got the same fix the same
-    # day this was found.
     param($InputObject)
     if ($null -eq $InputObject) { return "" }
     if ($InputObject -is [array]) {
@@ -182,10 +151,6 @@ function ConvertTo-SafeString {
 }
 
 function Invoke-GitCommand {
-    # Same stderr-as-failure fix used in every other wrapper: git writes
-    # routine status text to stderr, and $ErrorActionPreference = "Stop"
-    # would otherwise throw on real success. Returns exit code; caller
-    # checks it explicitly rather than relying on try/catch.
     param([string[]]$GitArgs)
     $prevEAP = $ErrorActionPreference
     $ErrorActionPreference = "Continue"
@@ -218,7 +183,7 @@ function Get-Subtasks {
         Write-Log "Failed to fetch sub_issues for #${ParentNumber}: $($numsResult.Output)" "ERROR"
         return @()
     }
-    $nums = @($numsResult.Output -split "`n" | Where-Object { $_ -match '^\d+$' })
+    $nums = @($numsResult.Output -split '\s+' | Where-Object { $_ -match '^\d+$' })
     $subtasks = @()
     foreach ($n in $nums) {
         $viewResult = Invoke-GhCommand -GhArgs @("issue", "view", $n, "--repo", $Repo, "--json", "number,title,body,labels,state")
@@ -256,21 +221,21 @@ function Invoke-ThreeAmigosStep {
     }
     $stories = @()
     if (-not [string]::IsNullOrWhiteSpace($storiesResult.Output)) {
-        try { $stories = ConvertFrom-JsonSafeArray $storiesResult.Output } catch {
+        try { $stories = @(ConvertFrom-JsonSafeArray $storiesResult.Output) } catch {
             Write-Log "Failed to parse status:review stories JSON: $_" "ERROR"
             return
         }
     }
-    Write-Log "Found $($stories.Count) story/stories at status:review."
+    Write-Log "Found $(@($stories).Count) story/stories at status:review."
 
     $templatePath = Join-Path $PromptTemplateDir "three-amigos-judge.md"
-    if ($stories.Count -gt 0 -and -not (Test-Path -LiteralPath $templatePath)) {
+    if (@($stories).Count -gt 0 -and -not (Test-Path -LiteralPath $templatePath)) {
         Write-Log "Prompt template not found at $templatePath" "ERROR"
         return
     }
-    $template = if ($stories.Count -gt 0) { Get-Content -LiteralPath $templatePath -Raw } else { $null }
+    $template = if (@($stories).Count -gt 0) { Get-Content -LiteralPath $templatePath -Raw } else { $null }
 
-    foreach ($story in $stories) {
+    foreach ($story in @($stories)) {
         $storyNumber = $story.number
         Write-Log "Processing story #$storyNumber for Three Amigos review..."
 
