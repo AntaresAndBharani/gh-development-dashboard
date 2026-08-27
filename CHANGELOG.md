@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Material 3 Compose UI for Story Evolution Chart (Compose Canvas), Stage Dwell-Time Cards with visual bottleneck flags, Scope Bar (Global vs per-project selector), and Segmented Time-Range chips (3D/14D/30D) mounted on `DashboardScreen`.
 - `AnalyticsUiState` and `DashboardViewModel` wiring for time-window (3D/14D/30D) and project scope filters (`setTimeWindow`, `setScopeFilter`, `recomputeAnalytics`).
 - Dwell-time calculation domain logic (`calculateStageDwellTimes`, `calculateDwellTimeSummary`) for the 9-phase SDLC pipeline and `TimeWindow` filters in `AnalyticsModels.kt`.
 - Room DB caching for stage transition timeline events via `StatusTransitionEntity`, `StatusTransitionDao`, and `ProjectRepository.fetchAndCacheIssueTransitions`.

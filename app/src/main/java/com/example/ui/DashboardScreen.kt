@@ -11,6 +11,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.MergeType
+import androidx.compose.material.icons.automirrored.filled.Notes
+import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -39,6 +42,7 @@ fun DashboardScreen(viewModel: DashboardViewModel) {
     val projects by viewModel.projectsHealth.collectAsStateWithLifecycle()
     val isAdding by viewModel.isAddingProject.collectAsStateWithLifecycle()
     val error by viewModel.addProjectError.collectAsStateWithLifecycle()
+    val analyticsUiState by viewModel.analyticsUiState.collectAsStateWithLifecycle()
     
     var showAddDialog by remember { mutableStateOf(false) }
     var sortExpanded by remember { mutableStateOf(false) }
@@ -73,7 +77,7 @@ fun DashboardScreen(viewModel: DashboardViewModel) {
                     }
                     Box {
                         IconButton(onClick = { sortExpanded = true }) {
-                            Icon(Icons.Default.Sort, contentDescription = "Sort")
+                            Icon(Icons.AutoMirrored.Filled.Sort, contentDescription = "Sort")
                         }
                         DropdownMenu(
                             expanded = sortExpanded,
@@ -141,6 +145,15 @@ fun DashboardScreen(viewModel: DashboardViewModel) {
                             Text("$totalStories user stories pending across all repos", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f))
                         }
                     }
+                }
+                
+                item {
+                    AnalyticsSection(
+                        uiState = analyticsUiState,
+                        projects = projects,
+                        onTimeWindowSelected = { viewModel.setTimeWindow(it) },
+                        onScopeSelected = { viewModel.setScopeFilter(it) }
+                    )
                 }
                 
                 item {
@@ -355,7 +368,7 @@ fun UserStoryItem(story: UserStory, project: ProjectHealth) {
                             onClick = { showDetailsDialog = true },
                             contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
                         ) {
-                            Icon(Icons.Default.Notes, contentDescription = null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.primary)
+                            Icon(Icons.AutoMirrored.Filled.Notes, contentDescription = null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.primary)
                             Spacer(modifier = Modifier.width(4.dp))
                             Text("Description & Comments", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                         }
@@ -479,7 +492,7 @@ fun SubtaskItem(task: Subtask, project: ProjectHealth) {
                         onClick = { showDetailsDialog = true },
                         contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
                     ) {
-                        Icon(Icons.Default.Notes, contentDescription = null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.primary)
+                        Icon(Icons.AutoMirrored.Filled.Notes, contentDescription = null, modifier = Modifier.size(14.dp), tint = MaterialTheme.colorScheme.primary)
                         Spacer(modifier = Modifier.width(4.dp))
                         Text("Subtask Details", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                     }
@@ -536,7 +549,7 @@ fun PullRequestItem(pr: PullRequest, project: ProjectHealth) {
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
-                Icons.Default.MergeType,
+                Icons.AutoMirrored.Filled.MergeType,
                 contentDescription = "Pull Request",
                 tint = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier.size(16.dp)
