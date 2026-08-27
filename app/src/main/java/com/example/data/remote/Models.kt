@@ -62,3 +62,10 @@ data class SubIssueDto(
     val labels: List<LabelDto>? = emptyList(),
     val body: String? = null
 )
+
+@JsonClass(generateAdapter = true)
+data class IssueEventDto(
+    val event: String,
+    val label: LabelDto? = null,
+    @Json(name = "created_at") val createdAt: String
+)

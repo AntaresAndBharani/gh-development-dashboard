@@ -43,6 +43,14 @@ interface GitHubService {
         @Query("per_page") perPage: Int = 100
     ): List<SubIssueDto>
 
+    @GET("repos/{owner}/{repo}/issues/{issue_number}/events")
+    suspend fun getIssueEvents(
+        @Path("owner") owner: String, 
+        @Path("repo") repo: String,
+        @Path("issue_number") issueNumber: Int,
+        @Query("per_page") perPage: Int = 100
+    ): List<IssueEventDto>
+
     @GET("repos/{owner}/{repo}/issues/{issue_number}")
     suspend fun getIssue(
         @Path("owner") owner: String, 
