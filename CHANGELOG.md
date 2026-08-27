@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Room DB caching for stage transition timeline events via `StatusTransitionEntity`, `StatusTransitionDao`, and `ProjectRepository.fetchAndCacheIssueTransitions`.
 - GitHub issue events endpoint and `IssueEventDto` data model in `GitHubService` and `Models.kt` for stage transition tracking.
 - Graph Engineering autonomous SDLC node infrastructure (Architect, Three Amigos, Dev & Test, PR Review, Backlog Triage).
 - Local CLI Pipeline execution scripts in `scripts/local-pipeline/` with Windows Task Scheduler integration (`GDD-*`).

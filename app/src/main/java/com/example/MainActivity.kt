@@ -23,7 +23,11 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         
         val database = AppDatabase.getDatabase(this)
-        val repository = ProjectRepository(database.projectDao(), RetrofitClient.instance)
+        val repository = ProjectRepository(
+            projectDao = database.projectDao(),
+            gitHubService = RetrofitClient.instance,
+            statusTransitionDao = database.statusTransitionDao()
+        )
         val viewModelFactory = DashboardViewModelFactory(repository)
         val viewModel = ViewModelProvider(this, viewModelFactory)[DashboardViewModel::class.java]
         
