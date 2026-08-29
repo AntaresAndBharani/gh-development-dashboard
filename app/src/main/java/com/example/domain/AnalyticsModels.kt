@@ -94,7 +94,7 @@ enum class SdlcStage(
  * Domain model representing a status/label transition event on an issue or user story.
  */
 data class StageTransition(
-    val issueId: String = "",
+    val issueId: String,
     val labelName: String,
     val timestamp: String,
     val eventType: String = "labeled"
