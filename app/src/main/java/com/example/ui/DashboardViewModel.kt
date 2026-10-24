@@ -4,9 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.data.local.StatusTransitionEntity
+import com.example.domain.ArchitectureComplianceSummary
+import com.example.domain.ArchitectureRegistry
 import com.example.domain.DwellTimeSummary
 import com.example.domain.ProjectHealth
 import com.example.domain.PullRequest
+import com.example.domain.RepoComplianceStatus
 import com.example.domain.SdlcStage
 import com.example.domain.StageDwellTime
 import com.example.domain.StageTransition
@@ -46,7 +49,10 @@ data class AnalyticsUiState(
     val isGlobal: Boolean get() = selectedScope.isNullOrBlank() || selectedScope.equals("global", ignoreCase = true)
 }
 
-class DashboardViewModel(private val repository: ProjectRepository) : ViewModel() {
+class DashboardViewModel(
+    private val repository: ProjectRepository,
+    private val autoSeedLiveProjects: Boolean = false
+) : ViewModel() {
 
     private val _projectsHealth = MutableStateFlow<List<ProjectHealth>>(emptyList())
     val projectsHealth: StateFlow<List<ProjectHealth>> = _projectsHealth.asStateFlow()
@@ -76,21 +82,59 @@ class DashboardViewModel(private val repository: ProjectRepository) : ViewModel(
     )
     val analyticsUiState: StateFlow<AnalyticsUiState> = _analyticsUiState.asStateFlow()
 
+    private val complianceCache = mutableMapOf<String, RepoComplianceStatus>()
+
+    private val _architectureComplianceUiState = MutableStateFlow(
+        ArchitectureRegistry.defaultComplianceSummary(repository.getArchitectureRegistry())
+    )
+    val architectureComplianceUiState: StateFlow<ArchitectureComplianceSummary> = _architectureComplianceUiState.asStateFlow()
+
     private var cachedTransitions: List<StatusTransitionEntity> = emptyList()
 
     init {
+        val registry = repository.getArchitectureRegistry()
+        registry.repositories.forEach { entry ->
+            val initialStatus = ArchitectureRegistry.evaluateRepoCompliance(
+                owner = entry.owner,
+                repo = entry.repo,
+                hasClaudeYml = entry.implemented,
+                hasPrReviewYml = entry.implemented,
+                registry = registry
+            )
+            complianceCache[entry.repoId.lowercase()] = initialStatus
+        }
+        recomputeArchitectureCompliance()
+
+        if (autoSeedLiveProjects) {
+            viewModelScope.launch {
+                repository.seedLiveProjectsIfEmpty()
+            }
+        }
+
         viewModelScope.launch {
             repository.allProjects.collectLatest { entities ->
                 val currentHealthMap = _projectsHealth.value.associateBy { it.id }
                 
                 val updatedHealthList = entities.map { entity ->
-                    currentHealthMap[entity.id] ?: ProjectHealth(
+                    val baselineCompliance = synchronized(this@DashboardViewModel) {
+                        complianceCache[entity.id.lowercase()]
+                    } ?: ArchitectureRegistry.evaluateRepoCompliance(
+                        owner = entity.owner,
+                        repo = entity.repo,
+                        hasClaudeYml = null,
+                        hasPrReviewYml = null,
+                        registry = repository.getArchitectureRegistry()
+                    )
+                    currentHealthMap[entity.id]?.copy(
+                        complianceStatus = currentHealthMap[entity.id]?.complianceStatus ?: baselineCompliance
+                    ) ?: ProjectHealth(
                         id = entity.id,
                         owner = entity.owner,
                         repo = entity.repo,
                         userStories = emptyList(),
                         pullRequests = emptyList(),
-                        isLoading = true
+                        isLoading = true,
+                        complianceStatus = baselineCompliance
                     )
                 }
                 
@@ -110,6 +154,12 @@ class DashboardViewModel(private val repository: ProjectRepository) : ViewModel(
         }
     }
 
+    fun seedLiveProjects() {
+        viewModelScope.launch {
+            repository.seedLiveProjectsIfEmpty()
+        }
+    }
+
     private fun fetchProjectData(owner: String, repo: String) {
         val id = "$owner/$repo"
         viewModelScope.launch {
@@ -118,6 +168,11 @@ class DashboardViewModel(private val repository: ProjectRepository) : ViewModel(
                 
                 val issues = repository.getProjectIssues(owner, repo)
                 val prs = repository.getProjectPullRequests(owner, repo)
+                val complianceStatus = repository.checkRepoArchitectureCompliance(owner, repo)
+                synchronized(this@DashboardViewModel) {
+                    complianceCache[id.lowercase()] = complianceStatus
+                }
+                recomputeArchitectureCompliance()
                 
                 val pullRequests = prs.map { pr ->
                     PullRequest(
@@ -220,7 +275,8 @@ class DashboardViewModel(private val repository: ProjectRepository) : ViewModel(
                     it.copy(
                         userStories = userStories,
                         pullRequests = pullRequests,
-                        isLoading = false
+                        isLoading = false,
+                        complianceStatus = complianceStatus
                     )
                 }
             } catch (e: Exception) {
@@ -229,6 +285,17 @@ class DashboardViewModel(private val repository: ProjectRepository) : ViewModel(
                 }
             }
         }
+    }
+
+    private fun recomputeArchitectureCompliance() {
+        val registry = repository.getArchitectureRegistry()
+        val statuses = synchronized(this@DashboardViewModel) {
+            complianceCache.values.toList()
+        }
+        _architectureComplianceUiState.value = ArchitectureRegistry.buildArchitectureComplianceSummary(
+            statuses = statuses,
+            practice = registry.toPracticeSpec()
+        )
     }
 
     private fun updateProjectState(id: String, update: (ProjectHealth) -> ProjectHealth) {
@@ -336,6 +403,15 @@ class DashboardViewModel(private val repository: ProjectRepository) : ViewModel(
     fun removeProject(id: String) {
         viewModelScope.launch {
             repository.deleteProject(id)
+            val isLiveCanonical = repository.getArchitectureRegistry().repositories.any {
+                it.repoId.equals(id, ignoreCase = true)
+            }
+            if (!isLiveCanonical) {
+                synchronized(this@DashboardViewModel) {
+                    complianceCache.remove(id.lowercase())
+                }
+                recomputeArchitectureCompliance()
+            }
         }
     }
 
@@ -352,12 +428,13 @@ class DashboardViewModel(private val repository: ProjectRepository) : ViewModel(
 }
 
 class DashboardViewModelFactory(
-    private val repository: ProjectRepository
+    private val repository: ProjectRepository,
+    private val autoSeedLiveProjects: Boolean = true
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(DashboardViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return DashboardViewModel(repository) as T
+            return DashboardViewModel(repository, autoSeedLiveProjects) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

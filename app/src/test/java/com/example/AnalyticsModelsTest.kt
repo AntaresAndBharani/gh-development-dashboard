@@ -301,4 +301,19 @@ class AnalyticsModelsTest {
         assertEquals(1756281600000L, parseTimestampToMillis("2025-08-27T08:00:00Z"))
         assertEquals(0L, parseTimestampToMillis("invalid-timestamp"))
     }
+
+    @Test
+    fun stageTransition_instantiatesWithRequiredIssueIdAndDefaults() {
+        val transition = StageTransition(
+            issueId = "issue-123",
+            labelName = "status:in-progress",
+            timestamp = "2026-08-29T12:00:00Z"
+        )
+        assertEquals("issue-123", transition.issueId)
+        assertEquals("status:in-progress", transition.labelName)
+        assertEquals("2026-08-29T12:00:00Z", transition.timestamp)
+        assertEquals("labeled", transition.eventType)
+        assertTrue(transition.timestampMillis > 0L)
+    }
 }
+

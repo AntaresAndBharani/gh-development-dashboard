@@ -69,3 +69,11 @@ data class IssueEventDto(
     val label: LabelDto? = null,
     @Json(name = "created_at") val createdAt: String
 )
+
+@JsonClass(generateAdapter = true)
+data class RepoContentDto(
+    val name: String,
+    val path: String,
+    val sha: String? = null,
+    val type: String? = "file"
+)

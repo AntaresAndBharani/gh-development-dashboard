@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModelProvider
 import com.example.data.local.AppDatabase
 import com.example.data.remote.RetrofitClient
+import com.example.domain.ArchitectureRegistry
 import com.example.repository.ProjectRepository
 import com.example.ui.DashboardScreen
 import com.example.ui.DashboardViewModel
@@ -23,12 +24,24 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         
         val database = AppDatabase.getDatabase(this)
+        val registryDocument = try {
+            assets.open("architecture-registry.json").bufferedReader().use { reader ->
+                ArchitectureRegistry.parseRegistryJson(reader.readText())
+            }
+        } catch (e: Exception) {
+            ArchitectureRegistry.DEFAULT_DOCUMENT
+        }
+
         val repository = ProjectRepository(
             projectDao = database.projectDao(),
             gitHubService = RetrofitClient.instance,
-            statusTransitionDao = database.statusTransitionDao()
+            statusTransitionDao = database.statusTransitionDao(),
+            architectureRegistry = registryDocument
         )
-        val viewModelFactory = DashboardViewModelFactory(repository)
+        val viewModelFactory = DashboardViewModelFactory(
+            repository = repository,
+            autoSeedLiveProjects = true
+        )
         val viewModel = ViewModelProvider(this, viewModelFactory)[DashboardViewModel::class.java]
         
         setContent {

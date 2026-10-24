@@ -36,7 +36,8 @@ data class ProjectHealth(
     val userStories: List<UserStory>,
     val pullRequests: List<PullRequest>,
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val complianceStatus: RepoComplianceStatus? = null
 ) {
     val openStoriesCount: Int get() = userStories.size
     val openPRsCount: Int get() = pullRequests.size

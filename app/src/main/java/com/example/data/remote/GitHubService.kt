@@ -64,4 +64,11 @@ interface GitHubService {
         @Path("repo") repo: String,
         @Path("pull_number") pullNumber: Int
     ): PullRequestDto
+
+    @GET("repos/{owner}/{repo}/contents/{path}")
+    suspend fun getRepoFileContent(
+        @Path("owner") owner: String,
+        @Path("repo") repo: String,
+        @Path(value = "path", encoded = true) path: String
+    ): RepoContentDto
 }

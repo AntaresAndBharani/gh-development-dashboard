@@ -1,4 +1,4 @@
-﻿# Changelog
+# Changelog
 
 All notable changes to this project will be documented in this file.
 
@@ -7,13 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Replaced legacy label-triggered `.github/workflows/merge.yml` with the standardized `AntaresAndBharani` Claude Code Review & Auto-Fix workflow (`.github/workflows/pr-review.yml`) and interactive `@claude` workflow (`.github/workflows/claude.yml`).
+- Made `StageTransition.issueId` a required constructor parameter without default value in `AnalyticsModels.kt` to prevent silent cross-issue transition collisions.
+
 ### Added
+- **Architecture & Way of Working Compliance Tracking (`v1.0.0`)**:
+  - Canonical versioned `architecture-registry.json` (mirrored to `app/src/main/assets/architecture-registry.json`) tracking the 5 live `AntaresAndBharani` repositories (`crosstrainingapp`, `retro-fighter`, `darwin-trader`, `gh-development-dashboard`, `kerberito`) and their Claude Code Review standard version (`1.0.0`).
+  - Pure domain models and evaluator (`ArchitectureModels.kt`, `ArchitectureRegistry`) combining live GitHub Contents API workflow checks (`.github/workflows/claude.yml`, `.github/workflows/pr-review.yml`) with registry version comparison (`UP_TO_DATE`, `OUTDATED`, `NOT_IMPLEMENTED`, plus offline fallback).
+  - Expandable `ArchitectureComplianceSection` summary card and per-project `ProjectComplianceBadge` / `ProjectComplianceDetailsCard` on `DashboardScreen.kt`, with automatic seeding of the 5 live repositories on first launch.
+  - Standardized GitHub Actions `CI` workflow (`.github/workflows/ci.yml`), `Claude Code` workflow (`.github/workflows/claude.yml`), `PR Review` workflow (`.github/workflows/pr-review.yml`), and review prompt (`.github/workflows/prompts/pr-review.md`).
 - Story Evolution Chart and Stage Dwell-Time Cards UI with Material 3 Scope Bar and time-window filtering (`AnalyticsScreen.kt`).
 - `AnalyticsUiState` and `DashboardViewModel` wiring for `3D`, `14D`, `30D` time windows and Global vs per-project filtering.
 - Dwell-time calculation domain logic (`calculateStageDwellTimes`, `calculateDwellTimeSummary`) for the 9-phase SDLC pipeline in `AnalyticsModels.kt`.
 - Room DB caching for stage transition timeline events via `StatusTransitionEntity`, `StatusTransitionDao`, and `ProjectRepository.fetchAndCacheIssueTransitions`.
 - GitHub issue events endpoint and `IssueEventDto` data model in `GitHubService` and `Models.kt` for stage transition tracking.
-- Merge & Backlog autonomous workflow in `.github/workflows/merge.yml`.
 - Graph Engineering autonomous SDLC node infrastructure (Architect, Three Amigos, Dev & Test, PR Review, Backlog Triage).
 - Local CLI Pipeline execution scripts in `scripts/local-pipeline/` with Windows Task Scheduler integration (`GDD-*`).
 - SMART GitHub issue templates for `user-story` and `subtask` under `.github/ISSUE_TEMPLATE/`.
