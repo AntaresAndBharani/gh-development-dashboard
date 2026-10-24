@@ -10,6 +10,7 @@ import com.example.data.remote.IssueDto
 import com.example.data.remote.IssueEventDto
 import com.example.data.remote.LabelDto
 import com.example.data.remote.PullRequestDto
+import com.example.data.remote.RepoContentDto
 import com.example.data.remote.RepoDto
 import com.example.data.remote.SubIssueDto
 import com.example.domain.ComplianceState
@@ -171,6 +172,10 @@ class TestGitHubService : GitHubService {
 
     override suspend fun getPullRequest(owner: String, repo: String, pullNumber: Int): PullRequestDto {
         throw NotImplementedError()
+    }
+
+    override suspend fun getRepoFileContent(owner: String, repo: String, path: String): RepoContentDto {
+        return RepoContentDto(name = path.substringAfterLast('/'), path = path, sha = "dummy-sha")
     }
 }
 

@@ -70,7 +70,5 @@ interface GitHubService {
         @Path("owner") owner: String,
         @Path("repo") repo: String,
         @Path(value = "path", encoded = true) path: String
-    ): RepoContentDto {
-        return RepoContentDto(name = path.substringAfterLast('/'), path = path)
-    }
+    ): RepoContentDto
 }

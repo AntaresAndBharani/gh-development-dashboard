@@ -11,6 +11,7 @@ import com.example.data.remote.SubIssueDto
 import com.example.domain.ArchitectureRegistry
 import com.example.domain.ArchitectureRegistryDocument
 import com.example.domain.RepoComplianceStatus
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import retrofit2.HttpException
@@ -87,6 +88,8 @@ class ProjectRepository(
             } else {
                 null
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             val msg = e.message ?: ""
             if (msg.contains("404") || msg.contains("Not Found", ignoreCase = true)) {

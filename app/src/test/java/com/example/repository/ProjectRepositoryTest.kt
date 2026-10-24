@@ -14,6 +14,7 @@ import com.example.data.remote.RepoContentDto
 import com.example.data.remote.RepoDto
 import com.example.data.remote.SubIssueDto
 import com.example.domain.ComplianceState
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
@@ -22,6 +23,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -98,6 +100,7 @@ class FakeGitHubService : GitHubService {
     var shouldThrowOnEvents: Boolean = false
     val missingContentPaths = mutableSetOf<String>()
     var shouldThrowNetworkErrorOnContent: Boolean = false
+    var shouldThrowCancellationOnContent: Boolean = false
 
     override suspend fun getRepo(owner: String, repo: String): RepoDto {
         return RepoDto(name = repo, fullName = "$owner/$repo", description = "Test", stargazersCount = 0)
@@ -152,6 +155,9 @@ class FakeGitHubService : GitHubService {
     }
 
     override suspend fun getRepoFileContent(owner: String, repo: String, path: String): RepoContentDto {
+        if (shouldThrowCancellationOnContent) {
+            throw CancellationException("Simulated cancellation")
+        }
         if (shouldThrowNetworkErrorOnContent) {
             throw RuntimeException("Simulated network timeout")
         }
@@ -292,6 +298,19 @@ class ProjectRepositoryTest {
         assertEquals(ComplianceState.UP_TO_DATE, status.state)
         assertTrue(status.hasClaudeYml)
         assertTrue(status.hasPrReviewYml)
+    }
+
+    @Test
+    fun checkRepoArchitectureCompliance_propagatesCancellationInsteadOfFallingBack() = runTest {
+        gitHubService.shouldThrowCancellationOnContent = true
+
+        val thrown = try {
+            repository.checkRepoArchitectureCompliance("AntaresAndBharani", "retro-fighter")
+            null
+        } catch (e: CancellationException) {
+            e
+        }
+        assertNotNull(thrown)
     }
 
     @Test
