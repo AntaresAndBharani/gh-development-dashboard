@@ -12,6 +12,7 @@ import com.example.data.remote.LabelDto
 import com.example.data.remote.PullRequestDto
 import com.example.data.remote.RepoDto
 import com.example.data.remote.SubIssueDto
+import com.example.domain.ComplianceState
 import com.example.domain.SdlcStage
 import com.example.domain.TimeWindow
 import com.example.repository.ProjectRepository
@@ -492,5 +493,39 @@ class DashboardViewModelTest {
 
         viewModel.clearError()
         assertNull(viewModel.addProjectError.value)
+    }
+
+    @Test
+    fun architectureComplianceUiState_initializesWith5LiveReposAndUpdatesOnFetch() = runTest(testDispatcher) {
+        val initialCompliance = viewModel.architectureComplianceUiState.value
+        assertEquals("1.0.0", initialCompliance.practice.standardVersion)
+        assertEquals(5, initialCompliance.totalRepos)
+        assertEquals(5, initialCompliance.upToDateCount)
+
+        projectDao.insertProject(
+            ProjectEntity(
+                id = "AntaresAndBharani/gh-development-dashboard",
+                owner = "AntaresAndBharani",
+                repo = "gh-development-dashboard"
+            )
+        )
+        advanceUntilIdle()
+
+        val projects = viewModel.projectsHealth.value
+        assertEquals(1, projects.size)
+        val dashboardHealth = projects.first()
+        assertNotNull(dashboardHealth.complianceStatus)
+        assertEquals(ComplianceState.UP_TO_DATE, dashboardHealth.complianceStatus?.state)
+        assertEquals("1.0.0", dashboardHealth.complianceStatus?.syncedVersion)
+    }
+
+    @Test
+    fun autoSeedLiveProjects_seeds5LiveRepositoriesOnStartup() = runTest(testDispatcher) {
+        val seededViewModel = DashboardViewModel(repository, autoSeedLiveProjects = true)
+        advanceUntilIdle()
+
+        val projects = seededViewModel.projectsHealth.value
+        assertEquals(5, projects.size)
+        assertTrue(projects.all { it.complianceStatus?.state == ComplianceState.UP_TO_DATE })
     }
 }

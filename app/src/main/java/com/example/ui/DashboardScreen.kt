@@ -43,6 +43,7 @@ fun DashboardScreen(viewModel: DashboardViewModel) {
     val isAdding by viewModel.isAddingProject.collectAsStateWithLifecycle()
     val error by viewModel.addProjectError.collectAsStateWithLifecycle()
     val analyticsUiState by viewModel.analyticsUiState.collectAsStateWithLifecycle()
+    val architectureComplianceSummary by viewModel.architectureComplianceUiState.collectAsStateWithLifecycle()
     
     var showAddDialog by remember { mutableStateOf(false) }
     var sortExpanded by remember { mutableStateOf(false) }
@@ -104,8 +105,19 @@ fun DashboardScreen(viewModel: DashboardViewModel) {
         }
     ) { padding ->
         if (projects.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                Text("No projects added. Click + to add.", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            LazyColumn(
+                modifier = Modifier.fillMaxSize().padding(padding),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                item {
+                    ArchitectureComplianceSection(summary = architectureComplianceSummary)
+                }
+                item {
+                    Box(modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp), contentAlignment = Alignment.Center) {
+                        Text("No projects added. Click + to add.", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
             }
         } else {
             LazyColumn(
@@ -145,6 +157,10 @@ fun DashboardScreen(viewModel: DashboardViewModel) {
                             Text("$totalStories user stories pending across all repos", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f))
                         }
                     }
+                }
+
+                item {
+                    ArchitectureComplianceSection(summary = architectureComplianceSummary)
                 }
                 
                 item {
@@ -242,6 +258,10 @@ fun ProjectCard(project: ProjectHealth, onDelete: () -> Unit) {
                         Text(project.id.replace("/", " / "), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
                         Box(modifier = Modifier.size(8.dp).background(if (project.error != null) Color(0xFFBA1A1A) else if (project.isLoading) Color(0xFFFBBC04) else Color(0xFF34A853), CircleShape))
                     }
+                    project.complianceStatus?.let { status ->
+                        Spacer(modifier = Modifier.height(6.dp))
+                        ProjectComplianceBadge(status = status)
+                    }
                 }
                 
                 IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
@@ -283,6 +303,10 @@ fun ProjectCard(project: ProjectHealth, onDelete: () -> Unit) {
                         .padding(top = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
+                    project.complianceStatus?.let { status ->
+                        ProjectComplianceDetailsCard(status = status)
+                    }
+
                     if (project.userStories.isNotEmpty()) {
                         Column {
                             Text("User Stories", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)

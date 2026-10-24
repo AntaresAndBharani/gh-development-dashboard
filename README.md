@@ -1,12 +1,21 @@
-﻿# GitHub Development Dashboard
+# GitHub Development Dashboard
 
-Android application built with **Jetpack Compose**, **Kotlin**, and **Material 3** for tracking and visualizing GitHub project repository health, workflows, and developer metrics.
+Android application built with **Jetpack Compose**, **Kotlin**, and **Material 3** for tracking and visualizing GitHub project repository health, workflows, architecture compliance, and developer metrics.
 
 ## 📱 Features & Highlights
 - **Modern UI:** Jetpack Compose with Material Design 3 and Unidirectional Data Flow (UDF).
+- **Architecture & Way of Working Compliance Tracking:** Tracks cross-repository adoption and version currency (`standardVersion: "1.0.0"`) of the standardized **Claude Code Review** workflows (`.github/workflows/claude.yml` and `.github/workflows/pr-review.yml`) across heterogeneous `AntaresAndBharani` live repositories (`crosstrainingapp`, `retro-fighter`, `darwin-trader`, `gh-development-dashboard`, `kerberito`) via [`architecture-registry.json`](architecture-registry.json) and live GitHub Contents API verification.
 - **Offline First:** Room Database local caching with Retrofit GitHub API integration.
-- **Automated Releases:** GitHub Actions manual release workflow generating installable Android APKs attached directly to GitHub Releases.
+- **Automated Releases & CI:** GitHub Actions CI verification ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)), Claude Opus 5.5 PR Review & Auto-Fix ([`.github/workflows/pr-review.yml`](.github/workflows/pr-review.yml)), and manual release workflow generating installable Android APKs attached directly to GitHub Releases.
 - **Graph Engineering SDLC:** Autonomous agentic pipeline covering Definition (Architect), Readiness Gate (Three Amigos), Implementation & TDD (Dev & Test), Code Review (PR Review), and Backlog Triage.
+
+## 🏛️ Architecture Registry (`architecture-registry.json`)
+To keep heterogeneous repositories aligned on shared `AntaresAndBharani` practices (starting with **Claude Code Review**), this repository stores the canonical [`architecture-registry.json`](architecture-registry.json) and bundles a mirrored copy in [`app/src/main/assets/architecture-registry.json`](app/src/main/assets/architecture-registry.json).
+
+When updating the Claude Code Review standard across live repositories:
+1. Update the workflow files across the live repositories (`crosstrainingapp`, `retro-fighter`, `darwin-trader`, `gh-development-dashboard`, `kerberito`).
+2. Bump `standardVersion` and each updated repository's `claudeCodeReviewVersion` in `architecture-registry.json`.
+3. Copy `architecture-registry.json` to `app/src/main/assets/architecture-registry.json` (enforced by unit tests and CI).
 
 ## 🛠️ Tech Stack
 - **OS / Platform:** Android (compileSdk 36, minSdk 24, targetSdk 36)

@@ -1,0 +1,64 @@
+{
+  "practiceId": "claude-code-review",
+  "practiceName": "Claude Code Review",
+  "description": "Standardized AntaresAndBharani Claude Opus 5.5 High GitHub App architecture: interactive @claude mentions (claude.yml) and automated PR review, in-place auto-fix ([skip pr-review]), self-healing label governance, exact-SHA CI gating, squash-merge, and parent-story closure (pr-review.yml + prompts/pr-review.md).",
+  "standardVersion": "1.0.0",
+  "lastUpdated": "2026-10-24",
+  "requiredFiles": [
+    ".github/workflows/claude.yml",
+    ".github/workflows/pr-review.yml",
+    ".github/workflows/prompts/pr-review.md"
+  ],
+  "repositories": [
+    {
+      "repoId": "AntaresAndBharani/crosstrainingapp",
+      "owner": "AntaresAndBharani",
+      "repo": "crosstrainingapp",
+      "techStack": "Android / Kotlin / Jetpack Compose",
+      "implemented": true,
+      "syncedVersion": "1.0.0",
+      "lastUpdated": "2026-10-23",
+      "notes": "Polls 'PR CI & Test Verification' on CURRENT_SHA; checks MVVM, Room migrations, Cloud Sync, and 360dp Compose UX."
+    },
+    {
+      "repoId": "AntaresAndBharani/retro-fighter",
+      "owner": "AntaresAndBharani",
+      "repo": "retro-fighter",
+      "techStack": "Godot 4.3 / GDScript / Python",
+      "implemented": true,
+      "syncedVersion": "1.0.0",
+      "lastUpdated": "2026-10-23",
+      "notes": "Polls 'CI' on CURRENT_SHA; runs lightweight Python unittest in-place and delegates Godot 4.3 headless verification to CI."
+    },
+    {
+      "repoId": "AntaresAndBharani/darwin-trader",
+      "owner": "AntaresAndBharani",
+      "repo": "darwin-trader",
+      "techStack": "Python FastAPI / React TypeScript",
+      "implemented": true,
+      "syncedVersion": "1.0.0",
+      "lastUpdated": "2026-10-23",
+      "notes": "Polls 'CI' on CURRENT_SHA; validates Python FastAPI backend, strategy engine, and React frontend."
+    },
+    {
+      "repoId": "AntaresAndBharani/gh-development-dashboard",
+      "owner": "AntaresAndBharani",
+      "repo": "gh-development-dashboard",
+      "techStack": "Android / Kotlin / Jetpack Compose",
+      "implemented": true,
+      "syncedVersion": "1.0.0",
+      "lastUpdated": "2026-10-24",
+      "notes": "Polls 'CI' on CURRENT_SHA; validates MVVM + UDF, Room DB, Architecture Registry parity, and Robolectric Compose tests."
+    },
+    {
+      "repoId": "AntaresAndBharani/kerberito",
+      "owner": "AntaresAndBharani",
+      "repo": "kerberito",
+      "techStack": "Python 3.11 / Textual TUI / Typer CLI",
+      "implemented": true,
+      "syncedVersion": "1.0.0",
+      "lastUpdated": "2026-10-24",
+      "notes": "Polls 'CI' on CURRENT_SHA; validates encrypted vault security, Typer CLI, Textual TUI, and pytest suite."
+    }
+  ]
+}

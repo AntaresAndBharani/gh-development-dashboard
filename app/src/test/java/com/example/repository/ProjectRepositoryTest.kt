@@ -1,4 +1,4 @@
-﻿package com.example.repository
+package com.example.repository
 
 import com.example.data.local.ProjectDao
 import com.example.data.local.ProjectEntity
@@ -10,16 +10,23 @@ import com.example.data.remote.IssueDto
 import com.example.data.remote.IssueEventDto
 import com.example.data.remote.LabelDto
 import com.example.data.remote.PullRequestDto
+import com.example.data.remote.RepoContentDto
 import com.example.data.remote.RepoDto
 import com.example.data.remote.SubIssueDto
+import com.example.domain.ComplianceState
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import retrofit2.HttpException
+import retrofit2.Response
 
 class FakeStatusTransitionDao : StatusTransitionDao {
     private val transitions = mutableListOf<StatusTransitionEntity>()
@@ -89,6 +96,8 @@ class FakeProjectDao : ProjectDao {
 class FakeGitHubService : GitHubService {
     var issueEventsToReturn: List<IssueEventDto> = emptyList()
     var shouldThrowOnEvents: Boolean = false
+    val missingContentPaths = mutableSetOf<String>()
+    var shouldThrowNetworkErrorOnContent: Boolean = false
 
     override suspend fun getRepo(owner: String, repo: String): RepoDto {
         return RepoDto(name = repo, fullName = "$owner/$repo", description = "Test", stargazersCount = 0)
@@ -140,6 +149,22 @@ class FakeGitHubService : GitHubService {
 
     override suspend fun getPullRequest(owner: String, repo: String, pullNumber: Int): PullRequestDto {
         throw NotImplementedError()
+    }
+
+    override suspend fun getRepoFileContent(owner: String, repo: String, path: String): RepoContentDto {
+        if (shouldThrowNetworkErrorOnContent) {
+            throw RuntimeException("Simulated network timeout")
+        }
+        if (missingContentPaths.contains("$owner/$repo:$path") || missingContentPaths.contains(path)) {
+            val errorBody = """{"message":"Not Found"}""".toResponseBody("application/json".toMediaType())
+            throw HttpException(Response.error<RepoContentDto>(404, errorBody))
+        }
+        return RepoContentDto(
+            name = path.substringAfterLast('/'),
+            path = path,
+            sha = "dummy-sha",
+            type = "file"
+        )
     }
 }
 
@@ -238,5 +263,47 @@ class ProjectRepositoryTest {
         assertTrue(result.isEmpty())
         val cachedInDao = statusTransitionDao.getTransitionsForIssueSync("owner/repo#42")
         assertTrue(cachedInDao.isEmpty())
+    }
+
+    @Test
+    fun checkRepoArchitectureCompliance_returnsUpToDateWhenBothWorkflowsExistAndInRegistry() = runTest {
+        val status = repository.checkRepoArchitectureCompliance("AntaresAndBharani", "gh-development-dashboard")
+        assertEquals(ComplianceState.UP_TO_DATE, status.state)
+        assertTrue(status.hasClaudeYml)
+        assertTrue(status.hasPrReviewYml)
+        assertEquals("1.0.0", status.syncedVersion)
+    }
+
+    @Test
+    fun checkRepoArchitectureCompliance_returnsNotImplementedWhenWorkflowReturns404() = runTest {
+        gitHubService.missingContentPaths.add(".github/workflows/pr-review.yml")
+
+        val status = repository.checkRepoArchitectureCompliance("AntaresAndBharani", "kerberito")
+        assertEquals(ComplianceState.NOT_IMPLEMENTED, status.state)
+        assertTrue(status.hasClaudeYml)
+        assertFalse(status.hasPrReviewYml)
+    }
+
+    @Test
+    fun checkRepoArchitectureCompliance_fallsBackToRegistryWhenNetworkThrows() = runTest {
+        gitHubService.shouldThrowNetworkErrorOnContent = true
+
+        val status = repository.checkRepoArchitectureCompliance("AntaresAndBharani", "retro-fighter")
+        assertEquals(ComplianceState.UP_TO_DATE, status.state)
+        assertTrue(status.hasClaudeYml)
+        assertTrue(status.hasPrReviewYml)
+    }
+
+    @Test
+    fun seedLiveProjectsIfEmpty_insertsAll5LiveProjectsFromRegistry() = runTest {
+        repository.seedLiveProjectsIfEmpty()
+
+        val stored = projectDao.getAllProjects().first()
+        assertEquals(5, stored.size)
+        assertTrue(stored.any { it.id == "AntaresAndBharani/crosstrainingapp" })
+        assertTrue(stored.any { it.id == "AntaresAndBharani/retro-fighter" })
+        assertTrue(stored.any { it.id == "AntaresAndBharani/darwin-trader" })
+        assertTrue(stored.any { it.id == "AntaresAndBharani/gh-development-dashboard" })
+        assertTrue(stored.any { it.id == "AntaresAndBharani/kerberito" })
     }
 }
