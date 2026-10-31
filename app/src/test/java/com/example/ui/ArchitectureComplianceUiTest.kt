@@ -28,7 +28,7 @@ class ArchitectureComplianceUiTest {
     val composeTestRule = createComposeRule()
 
     @Test
-    fun `ArchitectureComplianceSection renders summary header, version chip, and expands to show 5 live repos`() {
+    fun `ArchitectureComplianceSection renders summary header, version chip, and expands to show 6 live repos`() {
         val summary = ArchitectureRegistry.defaultComplianceSummary()
 
         composeTestRule.setContent {
@@ -43,7 +43,7 @@ class ArchitectureComplianceUiTest {
         composeTestRule.onNodeWithTag("architecture_version_chip", useUnmergedTree = true).assertIsDisplayed()
         composeTestRule.onNodeWithText("v1.0.0", substring = true, useUnmergedTree = true).assertIsDisplayed()
         composeTestRule.onNodeWithTag("architecture_summary_ratio", useUnmergedTree = true).assertIsDisplayed()
-        composeTestRule.onNodeWithText("5/5 Up to Date", substring = true, useUnmergedTree = true).assertIsDisplayed()
+        composeTestRule.onNodeWithText("6/6 Up to Date", substring = true, useUnmergedTree = true).assertIsDisplayed()
 
         // Initially collapsed
         composeTestRule.onNodeWithTag("architecture_repo_row_crosstrainingapp").assertDoesNotExist()
@@ -55,6 +55,7 @@ class ArchitectureComplianceUiTest {
         composeTestRule.onNodeWithTag("architecture_repo_row_darwin-trader").performScrollTo().assertIsDisplayed()
         composeTestRule.onNodeWithTag("architecture_repo_row_gh-development-dashboard").performScrollTo().assertIsDisplayed()
         composeTestRule.onNodeWithTag("architecture_repo_row_kerberito").performScrollTo().assertIsDisplayed()
+        composeTestRule.onNodeWithTag("architecture_repo_row_quant-trading-examples").performScrollTo().assertIsDisplayed()
         composeTestRule.onNodeWithTag("architecture_repo_row_retro-fighter").performScrollTo().assertIsDisplayed()
     }
 

@@ -273,7 +273,7 @@ class ProjectRepositoryTest {
 
     @Test
     fun checkRepoArchitectureCompliance_returnsUpToDateWhenBothWorkflowsExistAndInRegistry() = runTest {
-        val status = repository.checkRepoArchitectureCompliance("AntaresAndBharani", "gh-development-dashboard")
+        val status = repository.checkRepoArchitectureCompliance("repo-examples", "quant-trading-examples")
         assertEquals(ComplianceState.UP_TO_DATE, status.state)
         assertTrue(status.hasClaudeYml)
         assertTrue(status.hasPrReviewYml)
@@ -314,15 +314,16 @@ class ProjectRepositoryTest {
     }
 
     @Test
-    fun seedLiveProjectsIfEmpty_insertsAll5LiveProjectsFromRegistry() = runTest {
+    fun seedLiveProjectsIfEmpty_insertsAll6LiveProjectsFromRegistry() = runTest {
         repository.seedLiveProjectsIfEmpty()
 
         val stored = projectDao.getAllProjects().first()
-        assertEquals(5, stored.size)
+        assertEquals(6, stored.size)
         assertTrue(stored.any { it.id == "AntaresAndBharani/crosstrainingapp" })
         assertTrue(stored.any { it.id == "AntaresAndBharani/retro-fighter" })
         assertTrue(stored.any { it.id == "AntaresAndBharani/darwin-trader" })
         assertTrue(stored.any { it.id == "AntaresAndBharani/gh-development-dashboard" })
         assertTrue(stored.any { it.id == "AntaresAndBharani/kerberito" })
+        assertTrue(stored.any { it.id == "repo-examples/quant-trading-examples" })
     }
 }

@@ -36,7 +36,7 @@ class ProjectRepository(
     }
 
     /**
-     * Seeds the 5 live AntaresAndBharani repositories into local storage if no projects are currently stored.
+     * Seeds all canonical tracked repositories into local storage (inserting any missing canonical entries idempotently).
      */
     suspend fun seedLiveProjectsIfEmpty() {
         val current = try {
@@ -44,8 +44,9 @@ class ProjectRepository(
         } catch (e: Exception) {
             emptyList()
         }
-        if (current.isEmpty()) {
-            architectureRegistry.repositories.forEach { entry ->
+        val existingIds = current.map { it.id.lowercase() }.toSet()
+        architectureRegistry.repositories.forEach { entry ->
+            if (entry.repoId.lowercase() !in existingIds) {
                 projectDao.insertProject(
                     ProjectEntity(
                         id = entry.repoId,

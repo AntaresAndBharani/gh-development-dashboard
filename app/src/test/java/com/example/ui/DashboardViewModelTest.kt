@@ -501,36 +501,36 @@ class DashboardViewModelTest {
     }
 
     @Test
-    fun architectureComplianceUiState_initializesWith5LiveReposAndUpdatesOnFetch() = runTest(testDispatcher) {
+    fun architectureComplianceUiState_initializesWith6LiveReposAndUpdatesOnFetch() = runTest(testDispatcher) {
         val initialCompliance = viewModel.architectureComplianceUiState.value
         assertEquals("1.0.0", initialCompliance.practice.standardVersion)
-        assertEquals(5, initialCompliance.totalRepos)
-        assertEquals(5, initialCompliance.upToDateCount)
+        assertEquals(6, initialCompliance.totalRepos)
+        assertEquals(6, initialCompliance.upToDateCount)
 
         projectDao.insertProject(
             ProjectEntity(
-                id = "AntaresAndBharani/gh-development-dashboard",
-                owner = "AntaresAndBharani",
-                repo = "gh-development-dashboard"
+                id = "repo-examples/quant-trading-examples",
+                owner = "repo-examples",
+                repo = "quant-trading-examples"
             )
         )
         advanceUntilIdle()
 
         val projects = viewModel.projectsHealth.value
         assertEquals(1, projects.size)
-        val dashboardHealth = projects.first()
-        assertNotNull(dashboardHealth.complianceStatus)
-        assertEquals(ComplianceState.UP_TO_DATE, dashboardHealth.complianceStatus?.state)
-        assertEquals("1.0.0", dashboardHealth.complianceStatus?.syncedVersion)
+        val quantHealth = projects.first()
+        assertNotNull(quantHealth.complianceStatus)
+        assertEquals(ComplianceState.UP_TO_DATE, quantHealth.complianceStatus?.state)
+        assertEquals("1.0.0", quantHealth.complianceStatus?.syncedVersion)
     }
 
     @Test
-    fun autoSeedLiveProjects_seeds5LiveRepositoriesOnStartup() = runTest(testDispatcher) {
+    fun autoSeedLiveProjects_seeds6LiveRepositoriesOnStartup() = runTest(testDispatcher) {
         val seededViewModel = DashboardViewModel(repository, autoSeedLiveProjects = true)
         advanceUntilIdle()
 
         val projects = seededViewModel.projectsHealth.value
-        assertEquals(5, projects.size)
+        assertEquals(6, projects.size)
         assertTrue(projects.all { it.complianceStatus?.state == ComplianceState.UP_TO_DATE })
     }
 }

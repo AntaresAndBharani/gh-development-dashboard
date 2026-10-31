@@ -17,13 +17,13 @@ class ArchitectureComplianceTest {
     }
 
     @Test
-    fun `parseRegistryJson parses bundled architecture-registry_json with 5 live repos at version 1_0_0`() {
+    fun `parseRegistryJson parses bundled architecture-registry_json with 6 live repos at version 1_0_0`() {
         val rootFile = resolveRepoFile("architecture-registry.json")
         val doc = ArchitectureRegistry.parseRegistryJson(rootFile.readText())
         assertEquals("claude-code-review", doc.practiceId)
         assertEquals("Claude Code Review", doc.practiceName)
         assertEquals("1.0.0", doc.standardVersion)
-        assertEquals("2026-10-24", doc.lastUpdated)
+        assertEquals("2026-10-31", doc.lastUpdated)
         assertEquals(
             listOf(
                 ".github/workflows/claude.yml",
@@ -32,14 +32,15 @@ class ArchitectureComplianceTest {
             ),
             doc.requiredFiles
         )
-        assertEquals(5, doc.repositories.size)
+        assertEquals(6, doc.repositories.size)
 
         val expectedIds = listOf(
             "AntaresAndBharani/crosstrainingapp",
             "AntaresAndBharani/retro-fighter",
             "AntaresAndBharani/darwin-trader",
             "AntaresAndBharani/gh-development-dashboard",
-            "AntaresAndBharani/kerberito"
+            "AntaresAndBharani/kerberito",
+            "repo-examples/quant-trading-examples"
         )
         assertEquals(expectedIds, doc.repositories.map { it.repoId })
         assertTrue(doc.repositories.all { it.implemented && it.syncedVersion == "1.0.0" })
@@ -59,15 +60,15 @@ class ArchitectureComplianceTest {
 
         val parsed = ArchitectureRegistry.parseRegistryJson(rootText)
         assertEquals("1.0.0", parsed.standardVersion)
-        assertEquals(5, parsed.repositories.size)
+        assertEquals(6, parsed.repositories.size)
     }
 
     @Test
     fun `evaluateRepoCompliance returns UP_TO_DATE when both workflow files exist and version matches`() {
         val doc = ArchitectureRegistry.DEFAULT_DOCUMENT
         val status = ArchitectureRegistry.evaluateRepoCompliance(
-            owner = "AntaresAndBharani",
-            repo = "gh-development-dashboard",
+            owner = "repo-examples",
+            repo = "quant-trading-examples",
             hasClaudeYml = true,
             hasPrReviewYml = true,
             registry = doc
@@ -122,8 +123,8 @@ class ArchitectureComplianceTest {
     fun `evaluateRepoCompliance falls back to registry entry when offline or rate-limited`() {
         val doc = ArchitectureRegistry.DEFAULT_DOCUMENT
         val offlineKnown = ArchitectureRegistry.evaluateRepoCompliance(
-            owner = "AntaresAndBharani",
-            repo = "darwin-trader",
+            owner = "repo-examples",
+            repo = "quant-trading-examples",
             hasClaudeYml = null,
             hasPrReviewYml = null,
             registry = doc
@@ -146,7 +147,7 @@ class ArchitectureComplianceTest {
     }
 
     @Test
-    fun `buildArchitectureComplianceSummary aggregates counts across 5 live repos plus extra repo`() {
+    fun `buildArchitectureComplianceSummary aggregates counts across 6 live repos plus extra repo`() {
         val defaultSummary = ArchitectureRegistry.defaultComplianceSummary()
         val extraStatus = RepoComplianceStatus(
             repoId = "custom/extra-repo",
@@ -167,11 +168,11 @@ class ArchitectureComplianceTest {
         )
 
         assertEquals("1.0.0", summary.practice.standardVersion)
-        assertEquals(6, summary.totalRepos)
-        assertEquals(5, summary.upToDateCount)
+        assertEquals(7, summary.totalRepos)
+        assertEquals(6, summary.upToDateCount)
         assertEquals(0, summary.outdatedCount)
         assertEquals(1, summary.notImplementedCount)
-        assertEquals(5, summary.implementedCount)
+        assertEquals(6, summary.implementedCount)
     }
 
     @Test
