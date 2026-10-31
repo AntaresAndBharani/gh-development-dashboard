@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Expanded `architecture-registry.json`, `app/src/main/assets/architecture-registry.json`, and `ArchitectureRegistry.LIVE_REPOSITORIES` to track 6 live repositories (`AntaresAndBharani/crosstrainingapp`, `AntaresAndBharani/retro-fighter`, `AntaresAndBharani/darwin-trader`, `AntaresAndBharani/gh-development-dashboard`, `AntaresAndBharani/kerberito`, and `repo-examples/quant-trading-examples`) at Claude Code Review standard `v1.0.0`.
 - Updated `ProjectRepository.seedLiveProjectsIfEmpty()` to idempotently insert any missing canonical repositories into Room storage when upgrading existing installations.
+- Amended `.specify/memory/constitution.md` to `v1.1.0`, extending Principle IV (Cross-Repository Claude GitHub App & SDLC Governance) to all live tracked repositories across `AntaresAndBharani` and `repo-examples`.
 - Replaced legacy label-triggered `.github/workflows/merge.yml` with the standardized `AntaresAndBharani` Claude Code Review & Auto-Fix workflow (`.github/workflows/pr-review.yml`) and interactive `@claude` workflow (`.github/workflows/claude.yml`).
 - Made `StageTransition.issueId` a required constructor parameter without default value in `AnalyticsModels.kt` to prevent silent cross-issue transition collisions.
 

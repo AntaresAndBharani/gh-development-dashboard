@@ -42,18 +42,18 @@ description: "Task list for Quant Trading Examples Workflow Rollout & Architectu
 
 ## Phase 3: User Story 1 - Adapted Claude Code Review & CI Workflows in `repo-examples/quant-trading-examples` (Priority: P1) 🎯 MVP
 
-**Goal**: Deploy `.github/workflows/ci.yml`, `.github/workflows/claude.yml`, `.github/workflows/pr-review.yml`, `.github/workflows/prompts/pr-review.md`, and `tests/test_claude_workflows.py` tailored to `quantlab` in `C:/Users/rogal/workspaces/ws-trading/quant-trading-examples`.
+**Goal**: Deploy `.github/workflows/ci.yml`, `.github/workflows/claude.yml`, `.github/workflows/pr-review.yml`, `.github/workflows/prompts/pr-review.md`, and `tests/test_claude_workflows.py` tailored to `quantlab` in `repo-examples/quant-trading-examples`.
 
-**Independent Test**: Run `uv run pytest -v`, `uv run ruff check src tests`, and `uv run quantlab dashboard --check` inside `C:/Users/rogal/workspaces/ws-trading/quant-trading-examples`.
+**Independent Test**: Run `uv run pytest -v`, `uv run ruff check src tests`, and `uv run quantlab dashboard --check` inside `repo-examples/quant-trading-examples`.
 
 ### Implementation & Tests for User Story 1
 
-- [X] T005 [P] [US1] Create `.github/workflows/ci.yml` (`name: CI`, running `ruff check src tests`, `pytest -v`, and `quantlab dashboard --check` on `push` and `pull_request` to `main`) in `C:/Users/rogal/workspaces/ws-trading/quant-trading-examples/.github/workflows/ci.yml`
-- [X] T006 [P] [US1] Create interactive `@claude` GitHub App workflow (`name: Claude Code`, `anthropics/claude-code-action@v1` with `--model claude-opus-5-5 --effort high`) in `C:/Users/rogal/workspaces/ws-trading/quant-trading-examples/.github/workflows/claude.yml`
-- [X] T007 [P] [US1] Create automated PR review, in-place auto-fix (`[skip pr-review]`), zero-token `merge_only` fast path, label governance, exact-SHA `CI` polling, squash-merge, and parent-story closure workflow in `C:/Users/rogal/workspaces/ws-trading/quant-trading-examples/.github/workflows/pr-review.yml`
-- [X] T008 [P] [US1] Create tailored PR review prompt for `QuantLab` (`repo-examples/quant-trading-examples`) covering PIT causality, SymPy+Numba dual indicators, entropy/stats/DSP proof gates, Pine Script v6 transpiler, 4-quadrant Streamlit dashboard, and `pytest`/`ruff` hygiene in `C:/Users/rogal/workspaces/ws-trading/quant-trading-examples/.github/workflows/prompts/pr-review.md`
-- [X] T009 [US1] Create static workflow contract tests in `C:/Users/rogal/workspaces/ws-trading/quant-trading-examples/tests/test_claude_workflows.py` and update `C:/Users/rogal/workspaces/ws-trading/quant-trading-examples/CHANGELOG.md`
-- [X] T010 [US1] Run `uv run pytest -v`, `uv run ruff check src tests`, and `uv run quantlab dashboard --check` in `C:/Users/rogal/workspaces/ws-trading/quant-trading-examples`, commit on branch `feat/001-quantlab-research-suite`, and push to `repo-examples/quant-trading-examples`
+- [X] T005 [P] [US1] Create `.github/workflows/ci.yml` (`name: CI`, running `ruff check src tests`, `pytest -v`, and `quantlab dashboard --check` on `push` and `pull_request` to `main`) in `repo-examples/quant-trading-examples:.github/workflows/ci.yml`
+- [X] T006 [P] [US1] Create interactive `@claude` GitHub App workflow (`name: Claude Code`, `anthropics/claude-code-action@v1` with `--model claude-opus-5-5 --effort high`) in `repo-examples/quant-trading-examples:.github/workflows/claude.yml`
+- [X] T007 [P] [US1] Create automated PR review, in-place auto-fix (`[skip pr-review]`), zero-token `merge_only` fast path, label governance, exact-SHA `CI` polling, squash-merge, and parent-story closure workflow in `repo-examples/quant-trading-examples:.github/workflows/pr-review.yml`
+- [X] T008 [P] [US1] Create tailored PR review prompt for `QuantLab` (`repo-examples/quant-trading-examples`) covering PIT causality, SymPy+Numba dual indicators, entropy/stats/DSP proof gates, Pine Script v6 transpiler, 4-quadrant Streamlit dashboard, and `pytest`/`ruff` hygiene in `repo-examples/quant-trading-examples:.github/workflows/prompts/pr-review.md`
+- [X] T009 [US1] Create static workflow contract tests in `repo-examples/quant-trading-examples:tests/test_claude_workflows.py` and update `repo-examples/quant-trading-examples:CHANGELOG.md`
+- [X] T010 [US1] Run `uv run pytest -v`, `uv run ruff check src tests`, and `uv run quantlab dashboard --check` in `repo-examples/quant-trading-examples`, commit on branch `feat/001-quantlab-research-suite`, and push to `repo-examples/quant-trading-examples`
 
 **Checkpoint**: User Story 1 is complete and verified in `repo-examples/quant-trading-examples`.
 

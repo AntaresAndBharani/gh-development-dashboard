@@ -6,7 +6,7 @@
 
 ## Summary
 
-Deploy the standardized v1.0.0 Claude Code Review & CI workflow architecture (`.github/workflows/ci.yml`, `.github/workflows/claude.yml`, `.github/workflows/pr-review.yml`, `.github/workflows/prompts/pr-review.md`, and `tests/test_claude_workflows.py`) to `repo-examples/quant-trading-examples` (`C:\Users\rogal\workspaces\ws-trading\quant-trading-examples`), tailored to its `quantlab` Python 3.11+ quantitative research stack (`ruff`, `pytest`, `quantlab dashboard --check`, PIT causality, SymPy+Numba indicators, information-theoretic/statistical/DSP proofs, and Pine Script v6 transpiler). Simultaneously register `repo-examples/quant-trading-examples` as the 6th tracked repository in `gh-development-dashboard` (`architecture-registry.json`, `app/src/main/assets/architecture-registry.json`, `ArchitectureModels.kt`, `ProjectRepository.kt`, and unit/Robolectric UI tests).
+Deploy the standardized v1.0.0 Claude Code Review & CI workflow architecture (`.github/workflows/ci.yml`, `.github/workflows/claude.yml`, `.github/workflows/pr-review.yml`, `.github/workflows/prompts/pr-review.md`, and `tests/test_claude_workflows.py`) to `repo-examples/quant-trading-examples` (local checkout `../quant-trading-examples`), tailored to its `quantlab` Python 3.11+ quantitative research stack (`ruff`, `pytest`, `quantlab dashboard --check`, PIT causality, SymPy+Numba indicators, information-theoretic/statistical/DSP proofs, and Pine Script v6 transpiler). Simultaneously register `repo-examples/quant-trading-examples` as the 6th tracked repository in `gh-development-dashboard` (`architecture-registry.json`, `app/src/main/assets/architecture-registry.json`, `ArchitectureModels.kt`, `ProjectRepository.kt`, and unit/Robolectric UI tests).
 
 ## Technical Context
 
@@ -87,7 +87,7 @@ gh-development-dashboard/
 ### Cross-Repository Target (`repo-examples/quant-trading-examples`)
 
 ```text
-C:/Users/rogal/workspaces/ws-trading/quant-trading-examples/
+quant-trading-examples/
 ├── .github/
 │   └── workflows/
 │       ├── ci.yml
@@ -100,7 +100,7 @@ C:/Users/rogal/workspaces/ws-trading/quant-trading-examples/
 └── CHANGELOG.md
 ```
 
-**Structure Decision**: Deploys the adapted v1.0.0 workflow suite and static contract tests directly into `C:/Users/rogal/workspaces/ws-trading/quant-trading-examples` and updates the canonical 6-repository Architecture Registry, seeding logic, and test suite in `gh-development-dashboard`.
+**Structure Decision**: Deploys the adapted v1.0.0 workflow suite and static contract tests directly into the `repo-examples/quant-trading-examples` repository and updates the canonical 6-repository Architecture Registry, seeding logic, and test suite in `gh-development-dashboard`.
 
 ## Complexity Tracking
 

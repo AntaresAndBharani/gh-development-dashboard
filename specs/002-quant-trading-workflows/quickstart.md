@@ -3,7 +3,7 @@
 ## 1. Verify Workflows & Tests in `repo-examples/quant-trading-examples`
 
 ```powershell
-Push-Location "C:\Users\rogal\workspaces\ws-trading\quant-trading-examples"
+Push-Location "<path-to-your-checkout>\quant-trading-examples"
 uv run pytest -v
 uv run ruff check src tests
 uv run quantlab dashboard --check
@@ -18,7 +18,7 @@ Pop-Location
 ## 2. Verify Registry & Unit/UI Tests in `gh-development-dashboard`
 
 ```powershell
-Push-Location "C:\Users\rogal\workspaces\ws-setups\gh-development-dashboard"
+Push-Location "<path-to-your-checkout>\gh-development-dashboard"
 .\gradlew.bat testDebugUnitTest --no-daemon
 Pop-Location
 ```

@@ -12,7 +12,7 @@
 
 ### Session 2026-10-31
 
-- Q: On GitHub and in the local workspace (`C:/Users/rogal/workspaces/ws-trading/quant-trading-examples`), the repository is named `repo-examples/quant-trading-examples` (`quantlab`). What scope should we execute across `repo-examples/quant-trading-examples` and `gh-development-dashboard`? → A: Set up the adapted Claude Code Review + CI workflows (`ci.yml`, `claude.yml`, `pr-review.yml`, `prompts/pr-review.md`, and workflow contract tests) in `repo-examples/quant-trading-examples` AND register it in `gh-development-dashboard` (`architecture-registry.json`, `ArchitectureModels.kt`, and tests) as the 6th tracked repository.
+- Q: On GitHub and in the local workspace (`quant-trading-examples` checkout), the repository is named `repo-examples/quant-trading-examples` (`quantlab`). What scope should we execute across `repo-examples/quant-trading-examples` and `gh-development-dashboard`? → A: Set up the adapted Claude Code Review + CI workflows (`ci.yml`, `claude.yml`, `pr-review.yml`, `prompts/pr-review.md`, and workflow contract tests) in `repo-examples/quant-trading-examples` AND register it in `gh-development-dashboard` (`architecture-registry.json`, `ArchitectureModels.kt`, and tests) as the 6th tracked repository.
 
 ## User Scenarios & Testing *(mandatory)*
 
