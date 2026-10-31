@@ -273,7 +273,7 @@ class ProjectRepositoryTest {
 
     @Test
     fun checkRepoArchitectureCompliance_returnsUpToDateWhenBothWorkflowsExistAndInRegistry() = runTest {
-        val status = repository.checkRepoArchitectureCompliance("AntaresAndBharani", "gh-development-dashboard")
+        val status = repository.checkRepoArchitectureCompliance("repo-examples", "quant-trading-examples")
         assertEquals(ComplianceState.UP_TO_DATE, status.state)
         assertTrue(status.hasClaudeYml)
         assertTrue(status.hasPrReviewYml)
@@ -314,15 +314,37 @@ class ProjectRepositoryTest {
     }
 
     @Test
-    fun seedLiveProjectsIfEmpty_insertsAll5LiveProjectsFromRegistry() = runTest {
+    fun seedLiveProjectsIfEmpty_insertsAll6LiveProjectsFromRegistry() = runTest {
         repository.seedLiveProjectsIfEmpty()
 
         val stored = projectDao.getAllProjects().first()
-        assertEquals(5, stored.size)
+        assertEquals(6, stored.size)
         assertTrue(stored.any { it.id == "AntaresAndBharani/crosstrainingapp" })
         assertTrue(stored.any { it.id == "AntaresAndBharani/retro-fighter" })
         assertTrue(stored.any { it.id == "AntaresAndBharani/darwin-trader" })
         assertTrue(stored.any { it.id == "AntaresAndBharani/gh-development-dashboard" })
         assertTrue(stored.any { it.id == "AntaresAndBharani/kerberito" })
+        assertTrue(stored.any { it.id == "repo-examples/quant-trading-examples" })
+    }
+
+    @Test
+    fun seedLiveProjectsIfEmpty_backfillsMissingCanonicalReposWithoutDuplicatingExisting() = runTest {
+        // Simulate an existing installation seeded with the original 5 repositories (one stored with
+        // different casing) plus a user-added custom repository.
+        projectDao.insertProject(ProjectEntity(id = "antaresandbharani/crosstrainingapp", owner = "antaresandbharani", repo = "crosstrainingapp"))
+        listOf("retro-fighter", "darwin-trader", "gh-development-dashboard", "kerberito").forEach { repo ->
+            projectDao.insertProject(ProjectEntity(id = "AntaresAndBharani/$repo", owner = "AntaresAndBharani", repo = repo))
+        }
+        projectDao.insertProject(ProjectEntity(id = "custom/extra-repo", owner = "custom", repo = "extra-repo"))
+
+        repository.seedLiveProjectsIfEmpty()
+        repository.seedLiveProjectsIfEmpty()
+
+        val stored = projectDao.getAllProjects().first()
+        assertEquals(7, stored.size)
+        assertEquals(1, stored.count { it.id.equals("AntaresAndBharani/crosstrainingapp", ignoreCase = true) })
+        assertTrue(stored.any { it.id == "antaresandbharani/crosstrainingapp" })
+        assertTrue(stored.any { it.id == "custom/extra-repo" })
+        assertTrue(stored.any { it.id == "repo-examples/quant-trading-examples" && it.owner == "repo-examples" && it.repo == "quant-trading-examples" })
     }
 }

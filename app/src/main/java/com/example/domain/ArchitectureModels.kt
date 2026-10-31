@@ -22,7 +22,7 @@ data class ArchitecturePracticeSpec(
     val practiceName: String = "Claude Code Review",
     val description: String = "Standardized AntaresAndBharani Claude Opus 5.5 High GitHub App architecture: interactive @claude mentions (claude.yml) and automated PR review, in-place auto-fix ([skip pr-review]), self-healing label governance, exact-SHA CI gating, squash-merge, and parent-story closure (pr-review.yml + prompts/pr-review.md).",
     val standardVersion: String = "1.0.0",
-    val lastUpdated: String = "2026-10-24",
+    val lastUpdated: String = "2026-10-31",
     val requiredFiles: List<String> = listOf(
         ".github/workflows/claude.yml",
         ".github/workflows/pr-review.yml",
@@ -115,7 +115,7 @@ object ArchitectureRegistry {
         practiceName = "Claude Code Review",
         description = "Standardized AntaresAndBharani Claude Opus 5.5 High GitHub App architecture: interactive @claude mentions (claude.yml) and automated PR review, in-place auto-fix ([skip pr-review]), self-healing label governance, exact-SHA CI gating, squash-merge, and parent-story closure (pr-review.yml + prompts/pr-review.md).",
         standardVersion = "1.0.0",
-        lastUpdated = "2026-10-24",
+        lastUpdated = "2026-10-31",
         requiredFiles = listOf(
             CLAUDE_WORKFLOW_PATH,
             PR_REVIEW_WORKFLOW_PATH,
@@ -173,6 +173,16 @@ object ArchitectureRegistry {
             syncedVersion = "1.0.0",
             lastUpdated = "2026-10-24",
             notes = "Polls 'CI' on CURRENT_SHA; validates encrypted vault security, Typer CLI, Textual TUI, and pytest suite."
+        ),
+        RepoArchitectureEntry(
+            repoId = "repo-examples/quant-trading-examples",
+            owner = "repo-examples",
+            repo = "quant-trading-examples",
+            techStack = "Python 3.11 / Numba & SymPy / Streamlit & Pine v6",
+            implemented = true,
+            syncedVersion = "1.0.0",
+            lastUpdated = "2026-10-31",
+            notes = "Polls 'CI' on CURRENT_SHA; validates PIT causality, SymPy/Numba indicators, entropy/stats/DSP proofs, Pine v6 transpiler, and pytest/ruff."
         )
     )
 
