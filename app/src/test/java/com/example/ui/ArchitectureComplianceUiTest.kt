@@ -41,9 +41,9 @@ class ArchitectureComplianceUiTest {
 
         composeTestRule.onNodeWithTag("architecture_compliance_card").assertIsDisplayed()
         composeTestRule.onNodeWithTag("architecture_version_chip", useUnmergedTree = true).assertIsDisplayed()
-        composeTestRule.onNodeWithText("v1.0.0", substring = true, useUnmergedTree = true).assertIsDisplayed()
+        composeTestRule.onNodeWithText("v1.1.0", substring = true, useUnmergedTree = true).assertIsDisplayed()
         composeTestRule.onNodeWithTag("architecture_summary_ratio", useUnmergedTree = true).assertIsDisplayed()
-        composeTestRule.onNodeWithText("6/6 Up to Date", substring = true, useUnmergedTree = true).assertIsDisplayed()
+        composeTestRule.onNodeWithText("2/6 Up to Date", substring = true, useUnmergedTree = true).assertIsDisplayed()
 
         // Initially collapsed
         composeTestRule.onNodeWithTag("architecture_repo_row_crosstrainingapp").assertDoesNotExist()
@@ -69,9 +69,9 @@ class ArchitectureComplianceUiTest {
             state = ComplianceState.UP_TO_DATE,
             isImplemented = true,
             isUpToDate = true,
-            syncedVersion = "1.0.0",
-            targetVersion = "1.0.0",
-            lastUpdated = "2026-10-24",
+            syncedVersion = "1.1.0",
+            targetVersion = "1.1.0",
+            lastUpdated = "2026-11-21",
             hasClaudeYml = true,
             hasPrReviewYml = true
         )
@@ -80,7 +80,7 @@ class ArchitectureComplianceUiTest {
             repo = "legacy-repo",
             state = ComplianceState.OUTDATED,
             isUpToDate = false,
-            syncedVersion = "0.9.0"
+            syncedVersion = "1.0.0"
         )
         val missingStatus = upToDateStatus.copy(
             repoId = "AntaresAndBharani/missing-repo",
@@ -105,7 +105,7 @@ class ArchitectureComplianceUiTest {
 
         composeTestRule.onNodeWithTag("project_compliance_badge_gh-development-dashboard", useUnmergedTree = true)
             .assertIsDisplayed()
-        composeTestRule.onNodeWithText("Up to Date · v1.0.0", substring = true, useUnmergedTree = true)
+        composeTestRule.onNodeWithText("Up to Date · v1.1.0", substring = true, useUnmergedTree = true)
             .assertIsDisplayed()
 
         composeTestRule.onNodeWithTag("project_compliance_badge_legacy-repo", useUnmergedTree = true)

@@ -17,13 +17,13 @@ class ArchitectureComplianceTest {
     }
 
     @Test
-    fun `parseRegistryJson parses bundled architecture-registry_json with 6 live repos at version 1_0_0`() {
+    fun `parseRegistryJson parses bundled architecture-registry_json with 6 live repos at version 1_1_0`() {
         val rootFile = resolveRepoFile("architecture-registry.json")
         val doc = ArchitectureRegistry.parseRegistryJson(rootFile.readText())
         assertEquals("claude-code-review", doc.practiceId)
         assertEquals("Claude Code Review", doc.practiceName)
-        assertEquals("1.0.0", doc.standardVersion)
-        assertEquals("2026-10-31", doc.lastUpdated)
+        assertEquals("1.1.0", doc.standardVersion)
+        assertEquals("2026-11-21", doc.lastUpdated)
         assertEquals(
             listOf(
                 ".github/workflows/claude.yml",
@@ -43,7 +43,14 @@ class ArchitectureComplianceTest {
             "repo-examples/quant-trading-examples"
         )
         assertEquals(expectedIds, doc.repositories.map { it.repoId })
-        assertTrue(doc.repositories.all { it.implemented && it.syncedVersion == "1.0.0" })
+        assertTrue(doc.repositories.all { it.implemented })
+        val byId = doc.repositories.associateBy { it.repoId }
+        assertEquals("1.1.0", byId["AntaresAndBharani/crosstrainingapp"]?.syncedVersion)
+        assertEquals("1.1.0", byId["AntaresAndBharani/gh-development-dashboard"]?.syncedVersion)
+        assertEquals("1.0.0", byId["AntaresAndBharani/retro-fighter"]?.syncedVersion)
+        assertEquals("1.0.0", byId["AntaresAndBharani/darwin-trader"]?.syncedVersion)
+        assertEquals("1.0.0", byId["AntaresAndBharani/kerberito"]?.syncedVersion)
+        assertEquals("1.0.0", byId["repo-examples/quant-trading-examples"]?.syncedVersion)
     }
 
     @Test
@@ -59,35 +66,13 @@ class ArchitectureComplianceTest {
         assertEquals(rootText, assetText)
 
         val parsed = ArchitectureRegistry.parseRegistryJson(rootText)
-        assertEquals("1.0.0", parsed.standardVersion)
+        assertEquals("1.1.0", parsed.standardVersion)
         assertEquals(6, parsed.repositories.size)
     }
 
     @Test
     fun `evaluateRepoCompliance returns UP_TO_DATE when both workflow files exist and version matches`() {
         val doc = ArchitectureRegistry.DEFAULT_DOCUMENT
-        val status = ArchitectureRegistry.evaluateRepoCompliance(
-            owner = "repo-examples",
-            repo = "quant-trading-examples",
-            hasClaudeYml = true,
-            hasPrReviewYml = true,
-            registry = doc
-        )
-
-        assertEquals(ComplianceState.UP_TO_DATE, status.state)
-        assertTrue(status.isImplemented)
-        assertTrue(status.isUpToDate)
-        assertEquals("1.0.0", status.syncedVersion)
-        assertEquals("1.0.0", status.targetVersion)
-        assertTrue(status.hasClaudeYml)
-        assertTrue(status.hasPrReviewYml)
-    }
-
-    @Test
-    fun `evaluateRepoCompliance returns OUTDATED when workflows exist on GitHub but registered version is older or missing`() {
-        val doc = ArchitectureRegistry.DEFAULT_DOCUMENT.copy(
-            standardVersion = "2.0.0"
-        )
         val status = ArchitectureRegistry.evaluateRepoCompliance(
             owner = "AntaresAndBharani",
             repo = "crosstrainingapp",
@@ -96,10 +81,45 @@ class ArchitectureComplianceTest {
             registry = doc
         )
 
+        assertEquals(ComplianceState.UP_TO_DATE, status.state)
+        assertTrue(status.isImplemented)
+        assertTrue(status.isUpToDate)
+        assertEquals("1.1.0", status.syncedVersion)
+        assertEquals("1.1.0", status.targetVersion)
+        assertTrue(status.hasClaudeYml)
+        assertTrue(status.hasPrReviewYml)
+    }
+
+    @Test
+    fun `evaluateRepoCompliance returns OUTDATED when workflows exist on GitHub but registered version is older or missing`() {
+        val doc = ArchitectureRegistry.DEFAULT_DOCUMENT
+        val outdatedRepoStatus = ArchitectureRegistry.evaluateRepoCompliance(
+            owner = "repo-examples",
+            repo = "quant-trading-examples",
+            hasClaudeYml = true,
+            hasPrReviewYml = true,
+            registry = doc
+        )
+
+        assertEquals(ComplianceState.OUTDATED, outdatedRepoStatus.state)
+        assertTrue(outdatedRepoStatus.isImplemented)
+        assertFalse(outdatedRepoStatus.isUpToDate)
+        assertEquals("1.0.0", outdatedRepoStatus.syncedVersion)
+        assertEquals("1.1.0", outdatedRepoStatus.targetVersion)
+
+        val bumpedTargetDoc = doc.copy(standardVersion = "2.0.0")
+        val status = ArchitectureRegistry.evaluateRepoCompliance(
+            owner = "AntaresAndBharani",
+            repo = "crosstrainingapp",
+            hasClaudeYml = true,
+            hasPrReviewYml = true,
+            registry = bumpedTargetDoc
+        )
+
         assertEquals(ComplianceState.OUTDATED, status.state)
         assertTrue(status.isImplemented)
         assertFalse(status.isUpToDate)
-        assertEquals("1.0.0", status.syncedVersion)
+        assertEquals("1.1.0", status.syncedVersion)
         assertEquals("2.0.0", status.targetVersion)
     }
 
@@ -122,7 +142,19 @@ class ArchitectureComplianceTest {
     @Test
     fun `evaluateRepoCompliance falls back to registry entry when offline or rate-limited`() {
         val doc = ArchitectureRegistry.DEFAULT_DOCUMENT
-        val offlineKnown = ArchitectureRegistry.evaluateRepoCompliance(
+        val offlineCurrent = ArchitectureRegistry.evaluateRepoCompliance(
+            owner = "AntaresAndBharani",
+            repo = "crosstrainingapp",
+            hasClaudeYml = null,
+            hasPrReviewYml = null,
+            registry = doc
+        )
+
+        assertEquals(ComplianceState.UP_TO_DATE, offlineCurrent.state)
+        assertTrue(offlineCurrent.hasClaudeYml)
+        assertTrue(offlineCurrent.hasPrReviewYml)
+
+        val offlineOutdated = ArchitectureRegistry.evaluateRepoCompliance(
             owner = "repo-examples",
             repo = "quant-trading-examples",
             hasClaudeYml = null,
@@ -130,9 +162,9 @@ class ArchitectureComplianceTest {
             registry = doc
         )
 
-        assertEquals(ComplianceState.UP_TO_DATE, offlineKnown.state)
-        assertTrue(offlineKnown.hasClaudeYml)
-        assertTrue(offlineKnown.hasPrReviewYml)
+        assertEquals(ComplianceState.OUTDATED, offlineOutdated.state)
+        assertTrue(offlineOutdated.hasClaudeYml)
+        assertTrue(offlineOutdated.hasPrReviewYml)
 
         val offlineUnknown = ArchitectureRegistry.evaluateRepoCompliance(
             owner = "other",
@@ -158,7 +190,7 @@ class ArchitectureComplianceTest {
             isImplemented = false,
             isUpToDate = false,
             syncedVersion = null,
-            targetVersion = "1.0.0",
+            targetVersion = "1.1.0",
             lastUpdated = null,
             hasClaudeYml = false,
             hasPrReviewYml = false
@@ -167,16 +199,16 @@ class ArchitectureComplianceTest {
             statuses = defaultSummary.repositories + extraStatus
         )
 
-        assertEquals("1.0.0", summary.practice.standardVersion)
+        assertEquals("1.1.0", summary.practice.standardVersion)
         assertEquals(7, summary.totalRepos)
-        assertEquals(6, summary.upToDateCount)
-        assertEquals(0, summary.outdatedCount)
+        assertEquals(2, summary.upToDateCount)
+        assertEquals(4, summary.outdatedCount)
         assertEquals(1, summary.notImplementedCount)
         assertEquals(6, summary.implementedCount)
     }
 
     @Test
-    fun `gh-development-dashboard Claude Code Review and CI workflows satisfy standard v1_0_0 contract`() {
+    fun `gh-development-dashboard Claude Code Review and CI workflows satisfy standard v1_1_0 contract`() {
         val ciYml = resolveRepoFile(".github/workflows/ci.yml")
         val claudeYml = resolveRepoFile(".github/workflows/claude.yml")
         val prReviewYml = resolveRepoFile(".github/workflows/pr-review.yml")
@@ -206,10 +238,14 @@ class ArchitectureComplianceTest {
         assertTrue(prReviewText.contains("CI_WORKFLOW_NAME: \"CI\""))
         assertTrue(prReviewText.contains("[skip pr-review]"))
         assertTrue(prReviewText.contains("anthropics/claude-code-action@v1"))
+        assertTrue(prReviewText.contains("--permission-mode default"))
+        assertTrue(prReviewText.contains("--disallowedTools \"Agent,Task\""))
+        assertTrue(prReviewText.contains("Fail when review produced no verdict"))
 
         val promptText = prReviewPrompt.readText()
         assertTrue(promptText.contains("pr_review_output.json"))
         assertTrue(promptText.contains("APPROVED"))
         assertTrue(promptText.contains("CHANGES_REQUESTED"))
+        assertTrue(promptText.contains("run_in_background"))
     }
 }

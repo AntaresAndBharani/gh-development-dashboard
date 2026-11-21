@@ -503,10 +503,18 @@ class DashboardViewModelTest {
     @Test
     fun architectureComplianceUiState_initializesWith6LiveReposAndUpdatesOnFetch() = runTest(testDispatcher) {
         val initialCompliance = viewModel.architectureComplianceUiState.value
-        assertEquals("1.0.0", initialCompliance.practice.standardVersion)
+        assertEquals("1.1.0", initialCompliance.practice.standardVersion)
         assertEquals(6, initialCompliance.totalRepos)
-        assertEquals(6, initialCompliance.upToDateCount)
+        assertEquals(2, initialCompliance.upToDateCount)
+        assertEquals(4, initialCompliance.outdatedCount)
 
+        projectDao.insertProject(
+            ProjectEntity(
+                id = "AntaresAndBharani/crosstrainingapp",
+                owner = "AntaresAndBharani",
+                repo = "crosstrainingapp"
+            )
+        )
         projectDao.insertProject(
             ProjectEntity(
                 id = "repo-examples/quant-trading-examples",
@@ -517,11 +525,18 @@ class DashboardViewModelTest {
         advanceUntilIdle()
 
         val projects = viewModel.projectsHealth.value
-        assertEquals(1, projects.size)
-        val quantHealth = projects.first()
+        assertEquals(2, projects.size)
+        val crossTrainingHealth = projects.first { it.repo == "crosstrainingapp" }
+        assertNotNull(crossTrainingHealth.complianceStatus)
+        assertEquals(ComplianceState.UP_TO_DATE, crossTrainingHealth.complianceStatus?.state)
+        assertEquals("1.1.0", crossTrainingHealth.complianceStatus?.syncedVersion)
+        assertEquals("1.1.0", crossTrainingHealth.complianceStatus?.targetVersion)
+
+        val quantHealth = projects.first { it.repo == "quant-trading-examples" }
         assertNotNull(quantHealth.complianceStatus)
-        assertEquals(ComplianceState.UP_TO_DATE, quantHealth.complianceStatus?.state)
+        assertEquals(ComplianceState.OUTDATED, quantHealth.complianceStatus?.state)
         assertEquals("1.0.0", quantHealth.complianceStatus?.syncedVersion)
+        assertEquals("1.1.0", quantHealth.complianceStatus?.targetVersion)
     }
 
     @Test
@@ -531,6 +546,8 @@ class DashboardViewModelTest {
 
         val projects = seededViewModel.projectsHealth.value
         assertEquals(6, projects.size)
-        assertTrue(projects.all { it.complianceStatus?.state == ComplianceState.UP_TO_DATE })
+        assertTrue(projects.all { it.complianceStatus?.isImplemented == true })
+        assertEquals(2, projects.count { it.complianceStatus?.state == ComplianceState.UP_TO_DATE })
+        assertEquals(4, projects.count { it.complianceStatus?.state == ComplianceState.OUTDATED })
     }
 }

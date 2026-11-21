@@ -12,7 +12,7 @@ Repository metadata, status transitions, and architecture compliance baselines M
 All domain calculations, repository logic, Room DAO operations, and Jetpack Compose UI components MUST be covered by deterministic unit and Robolectric tests (`.\gradlew.bat testDebugUnitTest --no-daemon`). No Pull Request may be merged unless 100% of unit tests and static workflow contract checks pass in CI.
 
 ### IV. Cross-Repository Claude GitHub App & SDLC Governance
-All live tracked repositories across `AntaresAndBharani` and `repo-examples` MUST implement the standardized Claude GitHub App workflow architecture: `.github/workflows/claude.yml` for interactive `@claude` mentions and `.github/workflows/pr-review.yml` + `.github/workflows/prompts/pr-review.md` for automated Claude Opus 5.5 High PR review, in-place auto-fix (`[skip pr-review]`), `cancel-in-progress: false` concurrency, zero-token `merge_only` fast-path recovery, self-healing label governance, exact-SHA CI polling, squash-merge, and parent-story closure.
+All live tracked repositories across `AntaresAndBharani` and `repo-examples` MUST implement the standardized Claude GitHub App workflow architecture (`v1.1.0`): `.github/workflows/claude.yml` for interactive `@claude` mentions and `.github/workflows/pr-review.yml` + `.github/workflows/prompts/pr-review.md` for automated Claude Opus 5.5 High PR review with headless CI hardening (`--permission-mode default`, `--disallowedTools "Agent,Task"`, synchronous-only foreground execution, and a fail-fast missing-verdict guard), in-place auto-fix (`[skip pr-review]`), `cancel-in-progress: false` concurrency, zero-token `merge_only` fast-path recovery, self-healing label governance, exact-SHA CI polling, squash-merge, and parent-story closure.
 
 ### V. Environment Isolation & Repository Hygiene
 Machine-specific paths (such as `org.gradle.java.home` or local SDK paths) MUST NEVER be committed to `gradle.properties` or tracked files. Secrets MUST reside in `.env` (git-ignored) or GitHub Actions secrets (`CLAUDE_CODE_OAUTH_TOKEN`, `ORCHESTRATION_PAT`). Every feature and fix MUST be documented under `## [Unreleased]` in `CHANGELOG.md`.
@@ -34,4 +34,4 @@ Machine-specific paths (such as `org.gradle.java.home` or local SDK paths) MUST 
 
 This Constitution supersedes ad-hoc practices within `gh-development-dashboard`. Amendments require updating `.specify/memory/constitution.md`, incrementing `CONSTITUTION_VERSION` according to semantic versioning, and verifying alignment across `GEMINI.md` and `.github/workflows/prompts/pr-review.md`.
 
-**Version**: 1.1.0 | **Ratified**: 2026-10-24 | **Last Amended**: 2026-10-31
+**Version**: 1.2.0 | **Ratified**: 2026-10-24 | **Last Amended**: 2026-11-21

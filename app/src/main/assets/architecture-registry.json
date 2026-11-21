@@ -1,9 +1,9 @@
 {
   "practiceId": "claude-code-review",
   "practiceName": "Claude Code Review",
-  "description": "Standardized AntaresAndBharani Claude Opus 5.5 High GitHub App architecture: interactive @claude mentions (claude.yml) and automated PR review, in-place auto-fix ([skip pr-review]), self-healing label governance, exact-SHA CI gating, squash-merge, and parent-story closure (pr-review.yml + prompts/pr-review.md).",
-  "standardVersion": "1.0.0",
-  "lastUpdated": "2026-10-31",
+  "description": "Standardized AntaresAndBharani Claude Opus 5.5 High GitHub App architecture (v1.1.0): interactive @claude mentions (claude.yml) and automated PR review with headless CI hardening (--permission-mode default, --disallowedTools Agent/Task, synchronous-only execution, fail-fast missing-verdict guard), in-place auto-fix ([skip pr-review]), self-healing label governance, exact-SHA CI gating, squash-merge, and parent-story closure (pr-review.yml + prompts/pr-review.md).",
+  "standardVersion": "1.1.0",
+  "lastUpdated": "2026-11-21",
   "requiredFiles": [
     ".github/workflows/claude.yml",
     ".github/workflows/pr-review.yml",
@@ -16,9 +16,9 @@
       "repo": "crosstrainingapp",
       "techStack": "Android / Kotlin / Jetpack Compose",
       "implemented": true,
-      "syncedVersion": "1.0.0",
-      "lastUpdated": "2026-10-23",
-      "notes": "Polls 'PR CI & Test Verification' on CURRENT_SHA; checks MVVM, Room migrations, Cloud Sync, and 360dp Compose UX."
+      "syncedVersion": "1.1.0",
+      "lastUpdated": "2026-11-21",
+      "notes": "Polls 'PR CI & Test Verification' on CURRENT_SHA; hardened to v1.1.0 (--permission-mode default, --disallowedTools Agent/Task, fail-fast missing-verdict guard); checks MVVM, Room migrations, Cloud Sync, and 360dp Compose UX."
     },
     {
       "repoId": "AntaresAndBharani/retro-fighter",
@@ -46,9 +46,9 @@
       "repo": "gh-development-dashboard",
       "techStack": "Android / Kotlin / Jetpack Compose",
       "implemented": true,
-      "syncedVersion": "1.0.0",
-      "lastUpdated": "2026-10-24",
-      "notes": "Polls 'CI' on CURRENT_SHA; validates MVVM + UDF, Room DB, Architecture Registry parity, and Robolectric Compose tests."
+      "syncedVersion": "1.1.0",
+      "lastUpdated": "2026-11-21",
+      "notes": "Polls 'CI' on CURRENT_SHA; hardened to v1.1.0 (--permission-mode default, --disallowedTools Agent/Task, fail-fast missing-verdict guard); validates MVVM + UDF, Room DB, Architecture Registry parity, and Robolectric Compose tests."
     },
     {
       "repoId": "AntaresAndBharani/kerberito",

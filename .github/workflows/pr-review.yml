@@ -121,8 +121,8 @@ jobs:
           github_token: ${{ secrets.ORCHESTRATION_PAT || secrets.GITHUB_TOKEN }}
           prompt: |
             Read and follow all instructions in .github/workflows/prompts/pr-review.md.
-            Review the PR, automatically fix any code/test/doc issues you find in the working tree, and write your final output to pr_review_output.json.
-          claude_args: '--model claude-opus-5-5 --effort high --allowedTools "Read,Write,Edit,MultiEdit,Grep,Glob,Bash"'
+            Review the PR synchronously in the foreground (do not spawn subagents or background Bash tasks), automatically fix any code/test/doc issues you find in the working tree, and write your final output to pr_review_output.json in the repository root.
+          claude_args: '--model claude-opus-5-5 --effort high --permission-mode default --allowedTools "Read,Write,Edit,MultiEdit,Grep,Glob,Bash" --disallowedTools "Agent,Task"'
           additional_permissions: |
             actions: read
 
@@ -130,6 +130,7 @@ jobs:
         if: steps.meta.outputs.skip != 'true' && steps.meta.outputs.merge_only != 'true' && steps.claude.outcome == 'success' && hashFiles('pr_review_output.json') == ''
         run: |
           echo "::error::Claude review finished without writing pr_review_output.json; no verdict was posted."
+          gh pr comment "$PR_NUMBER" -R "$REPO" --body "⚠️ **PR Review Failed:** Claude Opus 5.5 finished without writing \`pr_review_output.json\`, so no verdict or auto-merge was applied. Re-run the \`PR Review\` workflow to retry." || true
           exit 1
 
       - name: Commit auto-fixes, apply verdict, and prepare merge

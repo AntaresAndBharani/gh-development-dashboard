@@ -20,9 +20,9 @@ enum class ComplianceState(val displayName: String) {
 data class ArchitecturePracticeSpec(
     val practiceId: String = "claude-code-review",
     val practiceName: String = "Claude Code Review",
-    val description: String = "Standardized AntaresAndBharani Claude Opus 5.5 High GitHub App architecture: interactive @claude mentions (claude.yml) and automated PR review, in-place auto-fix ([skip pr-review]), self-healing label governance, exact-SHA CI gating, squash-merge, and parent-story closure (pr-review.yml + prompts/pr-review.md).",
-    val standardVersion: String = "1.0.0",
-    val lastUpdated: String = "2026-10-31",
+    val description: String = "Standardized AntaresAndBharani Claude Opus 5.5 High GitHub App architecture (v1.1.0): interactive @claude mentions (claude.yml) and automated PR review with headless CI hardening (--permission-mode default, --disallowedTools Agent/Task, synchronous-only execution, fail-fast missing-verdict guard), in-place auto-fix ([skip pr-review]), self-healing label governance, exact-SHA CI gating, squash-merge, and parent-story closure (pr-review.yml + prompts/pr-review.md).",
+    val standardVersion: String = "1.1.0",
+    val lastUpdated: String = "2026-11-21",
     val requiredFiles: List<String> = listOf(
         ".github/workflows/claude.yml",
         ".github/workflows/pr-review.yml",
@@ -113,9 +113,9 @@ object ArchitectureRegistry {
     val DEFAULT_PRACTICE = ArchitecturePracticeSpec(
         practiceId = "claude-code-review",
         practiceName = "Claude Code Review",
-        description = "Standardized AntaresAndBharani Claude Opus 5.5 High GitHub App architecture: interactive @claude mentions (claude.yml) and automated PR review, in-place auto-fix ([skip pr-review]), self-healing label governance, exact-SHA CI gating, squash-merge, and parent-story closure (pr-review.yml + prompts/pr-review.md).",
-        standardVersion = "1.0.0",
-        lastUpdated = "2026-10-31",
+        description = "Standardized AntaresAndBharani Claude Opus 5.5 High GitHub App architecture (v1.1.0): interactive @claude mentions (claude.yml) and automated PR review with headless CI hardening (--permission-mode default, --disallowedTools Agent/Task, synchronous-only execution, fail-fast missing-verdict guard), in-place auto-fix ([skip pr-review]), self-healing label governance, exact-SHA CI gating, squash-merge, and parent-story closure (pr-review.yml + prompts/pr-review.md).",
+        standardVersion = "1.1.0",
+        lastUpdated = "2026-11-21",
         requiredFiles = listOf(
             CLAUDE_WORKFLOW_PATH,
             PR_REVIEW_WORKFLOW_PATH,
@@ -130,9 +130,9 @@ object ArchitectureRegistry {
             repo = "crosstrainingapp",
             techStack = "Android / Kotlin / Jetpack Compose",
             implemented = true,
-            syncedVersion = "1.0.0",
-            lastUpdated = "2026-10-23",
-            notes = "Polls 'PR CI & Test Verification' on CURRENT_SHA; checks MVVM, Room migrations, Cloud Sync, and 360dp Compose UX."
+            syncedVersion = "1.1.0",
+            lastUpdated = "2026-11-21",
+            notes = "Polls 'PR CI & Test Verification' on CURRENT_SHA; hardened to v1.1.0 (--permission-mode default, --disallowedTools Agent/Task, fail-fast missing-verdict guard); checks MVVM, Room migrations, Cloud Sync, and 360dp Compose UX."
         ),
         RepoArchitectureEntry(
             repoId = "AntaresAndBharani/retro-fighter",
@@ -160,9 +160,9 @@ object ArchitectureRegistry {
             repo = "gh-development-dashboard",
             techStack = "Android / Kotlin / Jetpack Compose",
             implemented = true,
-            syncedVersion = "1.0.0",
-            lastUpdated = "2026-10-24",
-            notes = "Polls 'CI' on CURRENT_SHA; validates MVVM + UDF, Room DB, Architecture Registry parity, and Robolectric Compose tests."
+            syncedVersion = "1.1.0",
+            lastUpdated = "2026-11-21",
+            notes = "Polls 'CI' on CURRENT_SHA; hardened to v1.1.0 (--permission-mode default, --disallowedTools Agent/Task, fail-fast missing-verdict guard); validates MVVM + UDF, Room DB, Architecture Registry parity, and Robolectric Compose tests."
         ),
         RepoArchitectureEntry(
             repoId = "AntaresAndBharani/kerberito",

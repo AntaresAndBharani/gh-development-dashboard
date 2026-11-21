@@ -273,11 +273,22 @@ class ProjectRepositoryTest {
 
     @Test
     fun checkRepoArchitectureCompliance_returnsUpToDateWhenBothWorkflowsExistAndInRegistry() = runTest {
-        val status = repository.checkRepoArchitectureCompliance("repo-examples", "quant-trading-examples")
+        val status = repository.checkRepoArchitectureCompliance("AntaresAndBharani", "crosstrainingapp")
         assertEquals(ComplianceState.UP_TO_DATE, status.state)
         assertTrue(status.hasClaudeYml)
         assertTrue(status.hasPrReviewYml)
+        assertEquals("1.1.0", status.syncedVersion)
+        assertEquals("1.1.0", status.targetVersion)
+    }
+
+    @Test
+    fun checkRepoArchitectureCompliance_returnsOutdatedWhenBothWorkflowsExistAtOlderRegisteredVersion() = runTest {
+        val status = repository.checkRepoArchitectureCompliance("repo-examples", "quant-trading-examples")
+        assertEquals(ComplianceState.OUTDATED, status.state)
+        assertTrue(status.hasClaudeYml)
+        assertTrue(status.hasPrReviewYml)
         assertEquals("1.0.0", status.syncedVersion)
+        assertEquals("1.1.0", status.targetVersion)
     }
 
     @Test
@@ -294,10 +305,15 @@ class ProjectRepositoryTest {
     fun checkRepoArchitectureCompliance_fallsBackToRegistryWhenNetworkThrows() = runTest {
         gitHubService.shouldThrowNetworkErrorOnContent = true
 
-        val status = repository.checkRepoArchitectureCompliance("AntaresAndBharani", "retro-fighter")
-        assertEquals(ComplianceState.UP_TO_DATE, status.state)
-        assertTrue(status.hasClaudeYml)
-        assertTrue(status.hasPrReviewYml)
+        val currentStatus = repository.checkRepoArchitectureCompliance("AntaresAndBharani", "crosstrainingapp")
+        assertEquals(ComplianceState.UP_TO_DATE, currentStatus.state)
+        assertTrue(currentStatus.hasClaudeYml)
+        assertTrue(currentStatus.hasPrReviewYml)
+
+        val outdatedStatus = repository.checkRepoArchitectureCompliance("AntaresAndBharani", "retro-fighter")
+        assertEquals(ComplianceState.OUTDATED, outdatedStatus.state)
+        assertTrue(outdatedStatus.hasClaudeYml)
+        assertTrue(outdatedStatus.hasPrReviewYml)
     }
 
     @Test
